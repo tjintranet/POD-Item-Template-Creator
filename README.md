@@ -1,124 +1,150 @@
 # POD Item Template Manager
 
-A web-based application for managing Print-on-Demand (POD) item templates. This tool helps users create and manage book specifications with automated calculations for spine size and page extent validation.
+A web-based tool for managing Print-on-Demand (POD) item templates. This application allows users to create, manage, and export book specifications in a standardized format.
 
 ## Features
 
-### 1. ISBN Management
-- Supports ISBN-13 format with automatic validation
-- Real-time validation with detailed error messages
-- Checks for valid prefix (978/979) and checksum
+### Core Functionality
+- Create and manage book specifications including:
+  - ISBN validation (13-digit)
+  - Title management (max 58 characters)
+  - Trim size specifications
+  - Paper type selection
+  - Binding style options
+  - Page extent calculations
+  - Spine size auto-calculation
+  - Lamination options
 
-### 2. Title Management
-- Supports titles up to 58 characters
-- Real-time character count display
-- Input validation with visual feedback
-
-### 3. Book Specifications
-- **Trim Size Management**
-  - Height and width input
-  - Automatic validation of measurements
-  - Support for standard book dimensions
-
-- **Page Extent Calculation**
-  - Automatic adjustment based on trim width
-  - Divisibility rules:
-    - For trim width ≤ 156mm: Must be divisible by 6
-    - For trim width > 156mm: Must be divisible by 4
-  - Interactive adjustment suggestions
-
-- **Spine Size Calculation**
-  - Automatic calculation based on:
-    - Page extent
-    - Paper type
-    - Binding style
-  - Additional 4mm for hardback (cased) binding
-
-### 4. Paper Type Options
-- Amber Preprint 80 gsm
-- Woodfree 80 gsm
-- Munken Print Cream 70 gsm
-- LetsGo Silk 90 gsm
-- Matt 115 gsm
-- Holmen Book Cream 60 gsm
-- Premium Mono 90 gsm
-- Premium Colour 90 gsm
-- Mechanical Creamy 70 gsm
-
-### 5. Additional Specifications
-- Binding Style (Limp/Cased)
-- Lamination Options (Gloss/Matt)
-- Automated spine size calculation
-
-### 6. Data Management
-- Add multiple entries
-- View all entries in a tabular format
+### Data Management
+- Add multiple entries to a session
 - Delete individual entries
-- Clear form functionality
-- Input validation for all fields
+- Save work sessions to JSON files
+- Load previous work sessions
+- Export data to CSV format
+- Toggle between NEW and UPDATE modes for CSV generation
 
-### 7. Export Functionality
-- Generate standardized CSV output
-- Support for NEW/UPDT toggle for export type
-- Automatically formatted filename with timestamp
-- Standardized CSV format compatible with POD systems
+### Validation and Calculations
+- Automatic ISBN validation with checksum verification
+- Dynamic page extent adjustments based on trim width
+- Automatic spine size calculations based on:
+  - Page extent
+  - Paper specifications
+  - Binding style
 
-## Usage
+### User Interface
+- Clean, responsive Bootstrap-based interface
+- Real-time validation feedback
+- Auto-dismissing status messages
+- Modal dialogs for user interactions
+- Custom file naming for saved sessions
 
-1. **Adding a New Entry**
-   - Fill in all required fields
-   - System validates inputs automatically
-   - Click "Add Entry" to add to the table
-   - Invalid entries will be highlighted with error messages
+## Paper Specifications
 
-2. **Managing Entries**
-   - View all entries in the table below the form
-   - Delete individual entries using the trash icon
-   - Clear the form using the "Clear Fields" button
-
-3. **Generating CSV**
-   - Toggle between NEW and UPDT modes
-   - Click "Generate CSV" to export all entries
-   - File downloads automatically with timestamp in filename
-
-4. **Page Extent Rules**
-   - The system automatically validates and suggests corrections for page extent
-   - Follows divisibility rules based on trim width
-   - Provides interactive modal for accepting suggested adjustments
-
-## Technical Specifications
-
-### Paper Specifications
-Each paper type includes:
-- Name
-- Grammage (GSM)
-- Volume factor for spine calculation
-
-### Spine Size Calculation
-Calculated using the formula:
+Currently supported paper types:
+```javascript
+{
+    amber_80: { name: 'Amber Preprint 80 gsm', grammage: 80, volume: 13 },
+    woodfree_80: { name: 'Woodfree 80 gsm', grammage: 80, volume: 17.5 },
+    munken_70: { name: 'Munken Print Cream 70 gsm', grammage: 70, volume: 18 },
+    letsgo_90: { name: 'LetsGo Silk 90 gsm', grammage: 90, volume: 10 },
+    matt_115: { name: 'Matt 115 gsm', grammage: 115, volume: 11 },
+    holmen_60: { name: 'Holmen Book Cream 60 gsm', grammage: 60, volume: 18 },
+    premium_mono_90: { name: 'Premium Mono 90 gsm', grammage: 90, volume: 9.7 },
+    premium_color_90: { name: 'Premium Colour 90 gsm', grammage: 90, volume: 9.7 },
+    mechanical_70: { name: 'Mechanical Creamy 70 gsm', grammage: 70, volume: 20 }
+}
 ```
-(Page Extent × Paper Grammage × Paper Volume) / 20000
-```
-With an additional 4mm for cased binding.
 
-## Error Handling
+## Technical Implementation
 
-The application includes comprehensive error handling for:
-- Invalid ISBN formats
-- Title length violations
-- Missing required fields
-- Invalid page extent values
-- Paper specification mismatches
-
-## Browser Compatibility
-
-The application is built using modern web technologies and requires:
-- Modern web browser with JavaScript enabled
-- Support for File API
-- Support for Blob and URL.createObjectURL
-
-## Dependencies
-
+### Dependencies
 - Bootstrap 5.3.2
 - Bootstrap Icons 1.11.3
-- SheetJS (XLSX) 0.18.5
+- SheetJS (XLSX) for Excel file handling
+
+### File Structure
+- `index.html`: Main application interface
+- `script.js`: Application logic and calculations
+- `style.css`: Custom styling
+
+## Potential Enhancements
+
+### Paper Types and Specifications
+- Add support for additional paper types
+- Allow custom paper specifications
+- Implement paper type categorization (e.g., by use case)
+- Add paper availability tracking
+- Include paper cost calculations
+
+### Data Management
+- Multiple save slots
+- Auto-save functionality
+- Cloud storage integration
+- Batch import/export capabilities
+- Template system for common configurations
+
+### Validation and Calculations
+- Enhanced trim size validation
+- Custom validation rules
+- Advanced spine calculation formulas
+- Cost estimation tools
+- Production time estimates
+
+### User Interface
+- Dark mode support
+- Customizable interface layouts
+- Keyboard shortcuts
+- Bulk editing capabilities
+- Search and filter functionality
+
+### Reporting
+- Generate detailed specification sheets
+- Production reports
+- Cost analysis reports
+- Historical data tracking
+- Usage statistics
+
+## Usage Instructions
+
+1. Basic Entry Creation:
+   - Fill in all required fields
+   - Click "Add Entry" to add to the session
+   - Use "Clear Fields" to reset the form
+
+2. Saving Work:
+   - Click "Save" to open save dialog
+   - Enter desired filename
+   - Click "Save" to download JSON file
+
+3. Loading Previous Work:
+   - Click "Load"
+   - Select previously saved JSON file
+   - Work session will be restored
+
+4. Generating CSV:
+   - Add required entries
+   - Select NEW/UPDT mode using toggle
+   - Click "Generate CSV"
+   - CSV will be downloaded with timestamp
+
+## Browser Support
+- Chrome (recommended)
+- Firefox
+- Edge
+- Safari
+
+## Contributing
+Contributions for new features, bug fixes, and improvements are welcome. Please follow the existing code style and add appropriate documentation.
+
+## Error Handling
+The application includes comprehensive error handling for:
+- Invalid ISBN numbers
+- Title length restrictions
+- Required field validation
+- File operations
+- Data format validation
+
+Each error is displayed to the user with clear, auto-dismissing messages.
+
+## License
+[Add your license information here]
