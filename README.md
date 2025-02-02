@@ -145,6 +145,3 @@ The application includes comprehensive error handling for:
 - Data format validation
 
 Each error is displayed to the user with clear, auto-dismissing messages.
-
-## License
-[Add your license information here]
