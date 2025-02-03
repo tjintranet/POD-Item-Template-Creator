@@ -176,9 +176,6 @@ loadInput.addEventListener('change', function(e) {
     reader.readAsText(file);
 });
 
-
-
-
 // Calculate adjusted page extent
 function calculatePageExtent(originalExtent, trimWidth) {
     const divisor = trimWidth <= NARROW_WIDTH_THRESHOLD ? 6 : 4;
@@ -426,49 +423,73 @@ function resetFieldValidation(id) {
 }
 
 // Add entry to table
+function updateTable() {
+    if (entries.some(entry => entry.hasOwnProperty('invalidFields'))) {
+        updateTableWithValidation();
+    } else {
+        const tbody = document.getElementById('entriesTableBody');
+        tbody.innerHTML = '';
+        entries.forEach((entry, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="text-center">
+                    <input type="checkbox" class="form-check-input entry-select" data-index="${index}">
+                </td>
+                <td class="text-nowrap">
+                    <button class="btn btn-danger btn-sm" onclick="deleteEntry(${index})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                    <button class="btn btn-primary btn-sm ms-1" onclick="downloadXML(${index})">
+                        <i class="bi bi-file-earmark-code"></i>
+                    </button>
+                </td>
+                <td>${entry.isbn}</td>
+                <td>${entry.title}</td>
+                <td>${entry.trimHeight}</td>
+                <td>${entry.trimWidth}</td>
+                <td>${entry.spineSize}</td>
+                <td>${entry.paperType}</td>
+                <td>${entry.bindingStyle}</td>
+                <td>${entry.pageExtent}</td>
+                <td>${entry.lamination}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+}
+
 function addEntry() {
     let isValid = true;
+    const invalidFields = [];
 
     // Validate ISBN
     const isbn = document.getElementById('isbn').value;
     const isbnValidation = isValidISBN(isbn);
     isValid = validateField('isbn', isbnValidation.isValid, isbnValidation.error) && isValid;
+    if (!isbnValidation.isValid) invalidFields.push('isbn');
 
     // Validate Title
     const title = document.getElementById('title').value;
-    isValid = validateField('title', title.length > 0 && title.length <= 58,
+    const isTitleValid = title.length > 0 && title.length <= 58;
+    isValid = validateField('title', isTitleValid,
         title.length === 0 ? 'Title is required' : 'Title cannot exceed 58 characters') && isValid;
+    if (!isTitleValid) invalidFields.push('title');
 
     // Validate other required fields
-    const requiredFields = [{
-            id: 'trimHeight',
-            name: 'Trim Height'
-        },
-        {
-            id: 'trimWidth',
-            name: 'Trim Width'
-        },
-        {
-            id: 'paperType',
-            name: 'Paper Type'
-        },
-        {
-            id: 'bindingStyle',
-            name: 'Binding Style'
-        },
-        {
-            id: 'pageExtent',
-            name: 'Page Extent'
-        },
-        {
-            id: 'lamination',
-            name: 'Lamination'
-        }
+    const requiredFields = [
+        { id: 'trimHeight', name: 'Trim Height' },
+        { id: 'trimWidth', name: 'Trim Width' },
+        { id: 'paperType', name: 'Paper Type' },
+        { id: 'bindingStyle', name: 'Binding Style' },
+        { id: 'pageExtent', name: 'Page Extent' },
+        { id: 'lamination', name: 'Lamination' }
     ];
 
     requiredFields.forEach(field => {
         const value = document.getElementById(field.id).value;
-        isValid = validateField(field.id, value.trim() !== '', `${field.name} is required`) && isValid;
+        const isFieldValid = value.trim() !== '';
+        isValid = validateField(field.id, isFieldValid, `${field.name} is required`) && isValid;
+        if (!isFieldValid) invalidFields.push(field.id);
     });
 
     if (!isValid) {
@@ -489,7 +510,8 @@ function addEntry() {
         paperType: paperTypeSelect.options[paperTypeSelect.selectedIndex].text,
         bindingStyle: bindingStyleSelect.options[bindingStyleSelect.selectedIndex].text,
         pageExtent: document.getElementById('pageExtent').value,
-        lamination: laminationSelect.options[laminationSelect.selectedIndex].text
+        lamination: laminationSelect.options[laminationSelect.selectedIndex].text,
+        invalidFields: invalidFields
     };
 
     entries.push(entry);
@@ -499,142 +521,253 @@ function addEntry() {
 }
 
 // Update table display
+
 function updateTable() {
+    if (entries.some(entry => entry.hasOwnProperty('invalidFields'))) {
+        updateTableWithValidation();
+    } else {
+        const tbody = document.getElementById('entriesTableBody');
+        tbody.innerHTML = '';
+        entries.forEach((entry, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="text-center">
+                    <input type="checkbox" class="form-check-input entry-select" data-index="${index}">
+                </td>
+                <td class="text-nowrap">
+                    <button class="btn btn-danger btn-sm" onclick="deleteEntry(${index})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                    <button class="btn btn-primary btn-sm ms-1" onclick="downloadXML(${index})">
+                        <i class="bi bi-file-earmark-code"></i>
+                    </button>
+                </td>
+                <td>${entry.isbn}</td>
+                <td>${entry.title}</td>
+                <td>${entry.trimHeight}</td>
+                <td>${entry.trimWidth}</td>
+                <td>${entry.spineSize}</td>
+                <td>${entry.paperType}</td>
+                <td>${entry.bindingStyle}</td>
+                <td>${entry.pageExtent}</td>
+                <td>${entry.lamination}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+}
+
+// Base table update function
+function updateTableWithValidation() {
     const tbody = document.getElementById('entriesTableBody');
     tbody.innerHTML = '';
-
+    
     entries.forEach((entry, index) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>
-                <input type="checkbox" class="form-check-input row-checkbox" data-index="${index}">
+            <td class="text-center">
+                <input type="checkbox" class="form-check-input entry-select" data-index="${index}">
             </td>
-            <td>
+            <td class="text-nowrap">
                 <button class="btn btn-danger btn-sm" onclick="deleteEntry(${index})">
                     <i class="bi bi-trash"></i>
                 </button>
+                <button class="btn btn-primary btn-sm ms-1" onclick="downloadXML(${index})">
+                    <i class="bi bi-file-earmark-code"></i>
+                </button>
             </td>
-            <td>${entry.isbn}</td>
-            <td>${entry.title}</td>
-            <td>${entry.trimHeight}</td>
-            <td>${entry.trimWidth}</td>
+            <td class="${entry.invalidFields?.includes('isbn') ? 'invalid-cell' : ''}">${entry.isbn}</td>
+            <td class="${entry.invalidFields?.includes('title') ? 'invalid-cell' : ''}">${entry.title}</td>
+            <td class="${entry.invalidFields?.includes('trimHeight') ? 'invalid-cell' : ''}">${entry.trimHeight}</td>
+            <td class="${entry.invalidFields?.includes('trimWidth') ? 'invalid-cell' : ''}">${entry.trimWidth}</td>
             <td>${entry.spineSize}</td>
-            <td>${entry.paperType}</td>
-            <td>${entry.bindingStyle}</td>
-            <td>${entry.pageExtent}</td>
-            <td>${entry.lamination}</td>
+            <td class="${entry.invalidFields?.includes('paperType') ? 'invalid-cell' : ''}">${entry.paperType}</td>
+            <td class="${entry.invalidFields?.includes('bindingStyle') ? 'invalid-cell' : ''}">${entry.bindingStyle}</td>
+            <td class="${entry.invalidFields?.includes('pageExtent') ? 'invalid-cell' : ''}">${entry.pageExtent}</td>
+            <td class="${entry.invalidFields?.includes('lamination') ? 'invalid-cell' : ''}">${entry.lamination}</td>
         `;
         tbody.appendChild(tr);
     });
-    updateBatchButton();
 }
 
-// Handle select all checkbox
-document.getElementById('selectAll').addEventListener('change', function() {
-    const checkboxes = document.querySelectorAll('.row-checkbox');
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = this.checked;
+function updateTable() {
+    updateTableWithValidation();
+}
+
+    document.getElementById('selectAll').addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.entry-select');
+        checkboxes.forEach(checkbox => checkbox.checked = this.checked);
+        document.getElementById('downloadXMLBtn').disabled = !this.checked;
     });
-    updateBatchButton();
+
+// Dropzone event listeners
+const dropzone = document.getElementById('dropzone');
+
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropzone.addEventListener(eventName, preventDefaults, false);
 });
 
-// Update batch download button state
-function updateBatchButton() {
-    const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
-    document.getElementById('batchXMLBtn').disabled = checkedBoxes.length === 0;
+function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
 }
 
-// Add event delegation for checkbox changes
-document.getElementById('entriesTableBody').addEventListener('change', function(e) {
-    if (e.target.classList.contains('row-checkbox')) {
-        updateBatchButton();
-        // Update "select all" checkbox
-        const allCheckboxes = document.querySelectorAll('.row-checkbox');
-        const checkedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
-        document.getElementById('selectAll').checked = 
-            allCheckboxes.length === checkedCheckboxes.length;
+['dragenter', 'dragover'].forEach(eventName => {
+    dropzone.addEventListener(eventName, highlight, false);
+});
+
+['dragleave', 'drop'].forEach(eventName => {
+    dropzone.addEventListener(eventName, unhighlight, false);
+});
+
+function highlight(e) {
+    dropzone.classList.add('dragover');
+}
+
+function unhighlight(e) {
+    dropzone.classList.remove('dragover');
+}
+
+dropzone.addEventListener('drop', handleDrop, false);
+
+function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    handleFiles(files);
+}
+
+// File input event listener
+document.getElementById('fileUpload').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        processExcelFile(file);
+        this.value = ''; // Reset file input
     }
 });
 
-// Helper function to escape XML special characters
-function escapeXml(unsafe) {
-    if (!unsafe) return '';
-    return unsafe
-        .toString()
-        .replace(/[<>&'"]/g, function (c) {
-            switch (c) {
-                case '<': return '&lt;';
-                case '>': return '&gt;';
-                case '&': return '&amp;';
-                case '\'': return '&apos;';
-                case '"': return '&quot;';
-            }
-        });
+// File handling functions
+function handleFiles(files) {
+    if (files.length > 0) {
+        processExcelFile(files[0]);
+    }
 }
 
-// Function to download multiple XML files
-async function downloadSelectedXML() {
-    const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
-    if (checkedBoxes.length === 0) {
-        showError('No rows selected');
+async function processExcelFile(file) {
+    if (!file.name.match(/\.(xls|xlsx)$/i)) {
+        showError('Please upload an Excel file (.xls or .xlsx)');
         return;
     }
 
-    // Create a zip file if multiple files are selected
-    if (checkedBoxes.length > 1) {
-        const zip = new JSZip();
-        
-        checkedBoxes.forEach(checkbox => {
-            const index = parseInt(checkbox.dataset.index);
-            const entry = entries[index];
-            const xmlContent = generateXMLContent(entry);
-            zip.file(`book_${entry.isbn}.xml`, xmlContent);
+    try {
+        const buffer = await readFileAsArrayBuffer(file);
+        const workbook = XLSX.read(new Uint8Array(buffer), {
+            type: 'array',
+            cellDates: true,
+            cellNF: true,
+            cellText: true
         });
 
-        // Generate and download zip file
-        const zipBlob = await zip.generateAsync({type: 'blob'});
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '_');
-        downloadBlob(zipBlob, `pod_xml_batch_${timestamp}.zip`);
-    } else {
-        // If only one file, download it directly
-        const index = parseInt(checkedBoxes[0].dataset.index);
-        const entry = entries[index];
-        const xmlContent = generateXMLContent(entry);
-        const blob = new Blob([xmlContent], { type: 'application/xml' });
-        downloadBlob(blob, `book_${entry.isbn}.xml`);
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+            raw: false,
+            defval: ''
+        });
+
+        validateAndImportData(jsonData);
+    } catch (error) {
+        console.error('Error processing Excel file:', error);
+        showError('Error processing Excel file');
     }
 }
 
-// Helper function to generate XML content
-function generateXMLContent(entry) {
-    return `<?xml version="1.0" encoding="UTF-8"?>
-<book>
-    <isbn>${entry.isbn}</isbn>
-    <title>${escapeXml(entry.title)}</title>
-    <specifications>
-        <trim>
-            <height>${entry.trimHeight}</height>
-            <width>${entry.trimWidth}</width>
-        </trim>
-        <spine>${entry.spineSize}</spine>
-        <paper>${escapeXml(entry.paperType)}</paper>
-        <binding>${entry.bindingStyle}</binding>
-        <pageExtent>${entry.pageExtent}</pageExtent>
-        <lamination>${entry.lamination}</lamination>
-    </specifications>
-</book>`;
+function readFileAsArrayBuffer(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = (e) => reject(e);
+        reader.readAsArrayBuffer(file);
+    });
 }
 
-// Helper function to download blob
-function downloadBlob(blob, filename) {
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+function validateAndImportData(jsonData) {
+    entries = [];
+    let validCount = 0;
+    let invalidCount = 0;
+
+    const validPaperTypes = Array.from(document.getElementById('paperType').options).map(opt => opt.text);
+    const validBindingStyles = Array.from(document.getElementById('bindingStyle').options).map(opt => opt.text);
+    const validLaminations = Array.from(document.getElementById('lamination').options).map(opt => opt.text);
+
+    jsonData.forEach((row) => {
+        const trimWidth = parseInt(row['Trim Width']) || 0;
+        const pageExtent = parseInt(row['Page Extent']) || 0;
+        const divisor = trimWidth <= NARROW_WIDTH_THRESHOLD ? 6 : 4;
+        const adjustedPageExtent = Math.ceil(pageExtent / divisor) * divisor;
+        
+        const paperTypeKey = Object.keys(PAPER_SPECS).find(key => 
+            PAPER_SPECS[key].name === row['Paper Type']
+        );
+
+        let title = row['Title'] || '';
+        const invalidFields = [];
+        
+        if (title.length > 58) {
+            title = title.substring(0, 58);
+            invalidFields.push('title');
+        }
+
+        const entry = {
+            isbn: row['ISBN'] || '',
+            title: title,
+            trimHeight: row['Trim Height'] || '',
+            trimWidth: trimWidth.toString(),
+            paperType: row['Paper Type'] || '',
+            bindingStyle: row['Binding Style'] || '',
+            pageExtent: adjustedPageExtent.toString(),
+            spineSize: '',
+            lamination: row['Lamination'] || '',
+            invalidFields: invalidFields
+        };
+
+        if (paperTypeKey && entry.bindingStyle) {
+            entry.spineSize = calculateSpineSize(
+                adjustedPageExtent,
+                paperTypeKey,
+                entry.bindingStyle
+            ).toString();
+        }
+
+        if (!isValidISBN(entry.isbn).isValid) invalidFields.push('isbn');
+        if (!validPaperTypes.includes(entry.paperType)) invalidFields.push('paperType');
+        if (!validBindingStyles.includes(entry.bindingStyle)) invalidFields.push('bindingStyle');
+        if (!validLaminations.includes(entry.lamination)) invalidFields.push('lamination');
+        if (isNaN(entry.trimHeight) || entry.trimHeight <= 0) invalidFields.push('trimHeight');
+        if (isNaN(entry.trimWidth) || entry.trimWidth <= 0) invalidFields.push('trimWidth');
+        if (isNaN(entry.pageExtent) || entry.pageExtent <= 0) invalidFields.push('pageExtent');
+
+        invalidFields.length === 0 ? validCount++ : invalidCount++;
+        entries.push(entry);
+    });
+
+    updateTableWithValidation();
+    enableDownloadButton();
+    document.getElementById('deleteAllBtn').disabled = entries.length === 0;
+
+    const truncatedCount = entries.filter(e => e.invalidFields.includes('title')).length;
+    const truncationMsg = truncatedCount > 0 ? ` (${truncatedCount} titles truncated to 58 characters)` : '';
+    showError(`Imported ${validCount} valid and ${invalidCount} invalid entries${truncationMsg}`);
+}
+
+function deleteAllEntries() {
+    if (confirm('Are you sure you want to delete all entries?')) {
+        entries.length = 0;
+        updateTableWithValidation();
+        enableDownloadButton();
+        document.getElementById('deleteAllBtn').disabled = true;
+        document.getElementById('downloadBtn').disabled = true;
+        document.getElementById('fileUpload').value = ''; // Reset file input
+        showError('All entries deleted');
+    }
 }
 
 // Delete entry
@@ -710,6 +843,98 @@ function clearFields() {
     document.getElementById('titleCounter').textContent = '0 / 58 characters';
 }
 
+function escapeXML(str) {
+    return str.replace(/[<>&'"]/g, function (c) {
+        switch (c) {
+            case '<': return '&lt;';
+            case '>': return '&gt;';
+            case '&': return '&amp;';
+            case '\'': return '&apos;';
+            case '"': return '&quot;';
+        }
+    });
+}
+
+function generateXML(entry) {
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<book>
+    <basic_info>
+        <isbn>${escapeXML(entry.isbn)}</isbn>
+        <title>${escapeXML(entry.title)}</title>
+    </basic_info>
+    <specifications>
+        <dimensions>
+            <trim_height>${escapeXML(entry.trimHeight)}</trim_height>
+            <trim_width>${escapeXML(entry.trimWidth)}</trim_width>
+            <spine_size>${escapeXML(entry.spineSize)}</spine_size>
+        </dimensions>
+        <materials>
+            <paper_type>${escapeXML(entry.paperType)}</paper_type>
+            <binding_style>${escapeXML(entry.bindingStyle)}</binding_style>
+            <lamination>${escapeXML(entry.lamination)}</lamination>
+        </materials>
+        <page_extent>${escapeXML(entry.pageExtent)}</page_extent>
+    </specifications>
+</book>`;
+    return xml;
+}
+
+function downloadXML(index) {
+    const entry = entries[index];
+    const xml = generateXML(entry);
+    const blob = new Blob([xml], { type: 'application/xml' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${entry.isbn.replace(/[^0-9]/g, '')}_book.xml`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+function downloadSelectedXML() {
+    const selectedIndexes = Array.from(document.querySelectorAll('.entry-select:checked'))
+        .map(checkbox => parseInt(checkbox.dataset.index));
+    
+    if (selectedIndexes.length === 0) {
+        showError('No entries selected');
+        return;
+    }
+    
+    if (selectedIndexes.length === 1) {
+        downloadXML(selectedIndexes[0]);
+        return;
+    }
+    
+    // Multiple files - create ZIP
+    const zip = new JSZip();
+    selectedIndexes.forEach(index => {
+        const entry = entries[index];
+        const xml = generateXML(entry);
+        zip.file(`${entry.isbn.replace(/[^0-9]/g, '')}_book.xml`, xml);
+    });
+    
+    zip.generateAsync({ type: 'blob' })
+        .then(blob => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'metadata.zip';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        });
+}
+
+document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('entry-select')) {
+        const checkedBoxes = document.querySelectorAll('.entry-select:checked').length;
+        document.getElementById('downloadXMLBtn').disabled = checkedBoxes === 0;
+    }
+});
+
 // Handle file upload
 document.getElementById('fileUpload').addEventListener('change', async function(e) {
     const file = e.target.files[0];
@@ -743,33 +968,40 @@ document.getElementById('fileUpload').addEventListener('change', async function(
 
             // Parse numeric values
             const trimWidth = parseInt(row['Trim Width']) || 0;
-            let pageExtent = parseInt(row['Page Extent']) || 0;
-            const adjustedPageExtent = calculatePageExtent(pageExtent, trimWidth);
+        const pageExtent = parseInt(row['Page Extent']) || 0;
+        const divisor = trimWidth <= NARROW_WIDTH_THRESHOLD ? 6 : 4;
+        const adjustedPageExtent = Math.ceil(pageExtent / divisor) * divisor;
+        
+        // Get paper type value from dropdown text
+        const paperTypeKey = Object.keys(PAPER_SPECS).find(key => 
+            PAPER_SPECS[key].name === row['Paper Type']
+        );
+        
+        // Calculate spine size
+        const spineSize = paperTypeKey && row['Binding Style'] ? 
+            calculateSpineSize(adjustedPageExtent, paperTypeKey, row['Binding Style']).toString() : '';
 
-            // Get paper specs for spine calculation
-            const paperType = row['Paper'];
-            const paperTypeKey = Object.keys(PAPER_SPECS).find(key =>
-                PAPER_SPECS[key].name === paperType
-            );
+        let title = row['Title'] || '';
+        const invalidFields = [];
+        
+        if (title.length > 58) {
+            title = title.substring(0, 58);
+            invalidFields.push('title');
+            truncatedTitles++;
+        }
 
-            // Calculate spine size
-            const spineSize = paperTypeKey ? calculateSpineSize(
-                adjustedPageExtent,
-                paperTypeKey,
-                row['Binding'].toLowerCase()
-            ) : 0;
-
-            const entry = {
-                isbn: isbn,
-                title: row['Title'] || '',
-                trimHeight: row['Trim Height'] || '',
-                trimWidth: trimWidth.toString(),
-                spineSize: spineSize.toString(),
-                paperType: paperType || '',
-                bindingStyle: row['Binding'] || '',
-                pageExtent: adjustedPageExtent.toString(),
-                lamination: row['Lamination'] || ''
-            };
+        const entry = {
+            isbn: row['ISBN'] || '',
+            title: title,
+            trimHeight: row['Trim Height'] || '',
+            trimWidth: trimWidth.toString(),
+            paperType: row['Paper Type'] || '',
+            bindingStyle: row['Binding Style'] || '',
+            pageExtent: adjustedPageExtent.toString(),
+            spineSize: spineSize,
+            lamination: row['Lamination'] || '',
+            invalidFields: invalidFields
+        };
 
             if (entry.title.length <= 58) {
                 entries.push(entry);

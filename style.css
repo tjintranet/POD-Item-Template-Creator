@@ -138,7 +138,7 @@ input:checked+.slider:before {
 
 /* Keep header text at normal size */
 .table thead th {
-	font-size: 1rem;
+	font-size: 0.85rem;
 }
 
 /* Table cell styling */
@@ -179,35 +179,26 @@ input:checked+.slider:before {
 	padding-bottom: 0;
 }
 
-/* Table cell styling */
-.table td {
-    vertical-align: middle;  /* Centers content vertically */
-    font-size: 0.85rem;
+.dropzone {
+    min-height: 100px;
+    border: 2px dashed #dee2e6;
+    transition: border-color 0.3s ease;
 }
 
-/* Specific styling for the action column */
-.table td:first-child {
-    text-align: center;
-    padding: 0.5rem;  /* Consistent padding */
-    min-width: 80px;  /* For the action buttons */
+.dropzone:hover, .dropzone.dragover {
+    border-color: #0d6efd;
 }
 
-/* Styling for checkbox column */
-.table td:first-child,
-.table th:first-child {
-    width: 30px;
-    text-align: center;
-    vertical-align: middle;
+.dropzone {
+    min-height: 100px;
+    border: 2px dashed #dee2e6;
+    transition: border-color 0.3s ease;
 }
 
-/* Ensure header is also vertically centered */
-.table th {
-    vertical-align: middle;
-    font-size: 1rem;
+.dropzone:hover, .dropzone.dragover {
+    border-color: #0d6efd;
 }
 
-/* Make sure the checkbox is centered in its cell */
-.form-check-input {
-    margin: 0;
-    vertical-align: middle;
+.table td.invalid-cell {
+    background-color: #ffd6d6;
 }

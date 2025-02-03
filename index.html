@@ -20,6 +20,11 @@
                   <h4 class="card-title mb-0">POD Item Template Manager</h4>
                   <!-- Controls Container -->
                   <div class="d-flex align-items-center">
+                     
+                     <a href="User_Guide.pdf" class="btn btn-light btn-sm me-3" download>
+                        <i class="bi bi-file-text me-1"></i>User Guide
+                    </a>
+
                      <!-- Save/Load Buttons -->
                      <button class="btn btn-light btn-sm" onclick="saveWork()">
                      <i class="bi bi-save me-1"></i>Save
@@ -40,6 +45,10 @@
                      <button class="btn btn-outline-light btn-sm ms-3" onclick="generateCSV()" id="downloadBtn" disabled>
                      <i class="bi bi-file-earmark-arrow-down me-1"></i>Generate CSV
                      </button>
+                     <button class="btn btn-outline-light btn-sm ms-2" onclick="downloadSelectedXML()" id="downloadXMLBtn" disabled>
+                        <i class="bi bi-file-earmark-code me-1"></i>Download XML
+                    </button>
+                    </button>
                   </div>
                </div>
             </div>
@@ -112,43 +121,60 @@
                   </div>
                </div>
                <button class="btn btn-outline-primary mb-4 hover-btn" onclick="addEntry()">
-                  <i class="bi bi-plus-lg me-1"></i>Add Entry
-              </button>
-              
-              <button class="btn btn-secondary mb-4 ms-2" onclick="clearFields()">
-                  <i class="bi bi-x-lg me-1"></i>Clear Fields
-              </button>
-              
-              <button class="btn btn-secondary mb-4 ms-2" onclick="downloadSelectedXML()" id="batchXMLBtn" disabled>
-                  <i class="bi bi-file-earmark-code me-1"></i>Download Selected XML
-              </button>
-
+               <i class="bi bi-plus-lg me-1"></i>Add Entry
+               </button>
+               <button class="btn btn-secondary mb-4 ms-2" onclick="clearFields()">
+               <i class="bi bi-x-lg me-1"></i>Clear Fields
+               </button>
                <!-- Data Table -->
                <div class="table-responsive">
                   <table class="table table-bordered table-hover">
                      <thead class="table-light">
-                         <tr>
-                           <th style="width: 30px">
-                           <input type="checkbox" class="form-check-input" id="selectAll">
-                           </th>
-                           <th style="width: 50px">Action</th>
-                           <th>ISBN</th>
-                           <th>Title</th>
-                           <th>Trim Height</th>
-                           <th>Trim Width</th>
-                           <th>Spine Size</th>
-                           <th>Paper Type</th>
-                           <th>Binding Style</th>
-                           <th>Page Extent</th>
-                           <th>Lamination</th>
+                        <tr>
+                            <th style="width: 30px">
+                                <input type="checkbox" class="form-check-input" id="selectAll">
+                            </th>
+                            <th style="width: 80px">Action</th>
+                            <th>ISBN</th>
+                            <th>Title</th>
+                            <th>Trim Height</th>
+                            <th>Trim Width</th>
+                            <th>Spine Size</th>
+                            <th>Paper Type</th>
+                            <th>Binding Style</th>
+                            <th>Page Extent</th>
+                            <th>Lamination</th>
                         </tr>
-                     </thead>
+                    </thead>
                      <tbody id="entriesTableBody"></tbody>
                   </table>
+                  
+<!-- Import Section -->
+<div class="import-section mt-4 p-3 border rounded bg-light">
+   <div class="d-flex align-items-center justify-content-between mb-2">
+       <div class="d-flex align-items-center gap-3">
+           <span class="fw-bold">Import Data</span>
+           <button class="btn btn-outline-danger btn-sm" onclick="deleteAllEntries()" id="deleteAllBtn" disabled>
+               <i class="bi bi-trash me-1"></i>Delete All
+           </button>
+       </div>
+       <a href="item_templates.xlsx" class="text-decoration-none">
+           <i class="bi bi-download me-1"></i>Download Template
+       </a>
+   </div>
+   <div class="dropzone d-flex align-items-center justify-content-center p-3 border rounded bg-white" id="dropzone">
+       <div class="text-center">
+           <i class="bi bi-cloud-arrow-up fs-4"></i>
+           <p class="mb-0">Drop Excel file here or <label class="text-primary" style="cursor: pointer;">browse<input type="file" id="fileUpload" accept=".xlsx,.xls" class="d-none" onchange="handleFiles(this.files)"></label></p>
+       </div>
+   </div>
+</div>
+                  
                </div>
             </div>
          </div>
       </div>
+      
       <!-- Save File Modal -->
       <div class="modal fade" id="saveFileModal" tabindex="-1">
          <div class="modal-dialog">

@@ -1,147 +1,169 @@
 # POD Item Template Manager
 
-A web-based tool for managing Print-on-Demand (POD) item templates. This application allows users to create, manage, and export book specifications in a standardized format.
+A web-based application for managing Print-on-Demand book specifications, automating calculations, and generating standardized templates for production use.
 
-## Features
-
-### Core Functionality
-- Create and manage book specifications including:
-  - ISBN validation (13-digit)
-  - Title management (max 58 characters)
-  - Trim size specifications
-  - Paper type selection
-  - Binding style options
-  - Page extent calculations
-  - Spine size auto-calculation
-  - Lamination options
+### Core Features
+- Real-time book specification management with automated calculations
+- Bulk data import from Excel files with validation
+- Multi-format export capabilities (CSV, XML)
+- Automated spine size calculations based on industry standards
+- Intelligent page extent adjustment based on trim width
+- Session management with save/load functionality
 
 ### Data Management
-- Add multiple entries to a session
-- Delete individual entries
-- Save work sessions to JSON files
-- Load previous work sessions
-- Export data to CSV format
-- Toggle between NEW and UPDATE modes for CSV generation
+- Single entry addition with real-time validation
+- Bulk import from Excel with error highlighting
+- Save/load work sessions in JSON format
+- Batch operations for multiple entries
 
-### Validation and Calculations
-- Automatic ISBN validation with checksum verification
-- Dynamic page extent adjustments based on trim width
-- Automatic spine size calculations based on:
-  - Page extent
-  - Paper specifications
-  - Binding style
+### Export Capabilities
+- CSV export with NEW/UPDT modes
+- Individual XML generation per entry
+- Batch XML export with ZIP compression
+- Standardized template downloads
 
-### User Interface
-- Clean, responsive Bootstrap-based interface
-- Real-time validation feedback
-- Auto-dismissing status messages
-- Modal dialogs for user interactions
-- Custom file naming for saved sessions
+### Prerequisites
+- Web server (Apache, Nginx, etc.)
+- Modern web browser with JavaScript enabled
+- No database required - file-based storage
 
-## Paper Specifications
+### Setup
+1. Clone repository to web server directory
+2. Ensure proper file permissions
+3. Access via web browser
+4. No additional configuration required
 
-Currently supported paper types:
+### File Structure
+```
+├── index.html          # Main application interface
+├── style.css          # Custom styling
+├── script.js          # Application logic
+├── favicon-32x32.png  # Browser icon
+├── apple-touch-icon.png # iOS icon
+└── item_templates.xlsx # Excel template
+```
+
+### Dependencies
 ```javascript
 {
-    amber_80: { name: 'Amber Preprint 80 gsm', grammage: 80, volume: 13 },
-    woodfree_80: { name: 'Woodfree 80 gsm', grammage: 80, volume: 17.5 },
-    munken_70: { name: 'Munken Print Cream 70 gsm', grammage: 70, volume: 18 },
-    letsgo_90: { name: 'LetsGo Silk 90 gsm', grammage: 90, volume: 10 },
-    matt_115: { name: 'Matt 115 gsm', grammage: 115, volume: 11 },
-    holmen_60: { name: 'Holmen Book Cream 60 gsm', grammage: 60, volume: 18 },
-    premium_mono_90: { name: 'Premium Mono 90 gsm', grammage: 90, volume: 9.7 },
-    premium_color_90: { name: 'Premium Colour 90 gsm', grammage: 90, volume: 9.7 },
-    mechanical_70: { name: 'Mechanical Creamy 70 gsm', grammage: 70, volume: 20 }
+    "bootstrap": "5.3.2",
+    "bootstrap-icons": "1.11.3",
+    "sheetjs": "0.18.5",
+    "jszip": "3.10.1"
 }
 ```
 
-## Technical Implementation
+### Browser Support
+- Chrome (latest)
+- Firefox (latest)
+- Safari (latest)
+- Edge (latest)
 
-### Dependencies
-- Bootstrap 5.3.2
-- Bootstrap Icons 1.11.3
-- SheetJS (XLSX) for Excel file handling
+### Paper Specifications
+```javascript
+const PAPER_SPECS = {
+    amber_80: {
+        name: 'Amber Preprint 80 gsm',
+        grammage: 80,
+        volume: 13
+    },
+    woodfree_80: {
+        name: 'Woodfree 80 gsm',
+        grammage: 80,
+        volume: 17.5
+    },
+    munken_70: {
+        name: 'Munken Print Cream 70 gsm',
+        grammage: 70,
+        volume: 18
+    },
+    letsgo_90: {
+        name: 'LetsGo Silk 90 gsm',
+        grammage: 90,
+        volume: 10
+    },
+    matt_115: {
+        name: 'Matt 115 gsm',
+        grammage: 115,
+        volume: 11
+    },
+    holmen_60: {
+        name: 'Holmen Book Cream 60 gsm',
+        grammage: 60,
+        volume: 18
+    },
+    premium_mono_90: {
+        name: 'Premium Mono 90 gsm',
+        grammage: 90,
+        volume: 9.7
+    },
+    premium_color_90: {
+        name: 'Premium Colour 90 gsm',
+        grammage: 90,
+        volume: 9.7
+    },
+    mechanical_70: {
+        name: 'Mechanical Creamy 70 gsm',
+        grammage: 70,
+        volume: 20
+    }
+}
+```
 
-### File Structure
-- `index.html`: Main application interface
-- `script.js`: Application logic and calculations
-- `style.css`: Custom styling
+### Binding Options
+- Limp
+- Cased
 
-## Potential Enhancements
+### Lamination Types
+- Gloss
+- Matt
 
-### Paper Types and Specifications
-- Add support for additional paper types
-- Allow custom paper specifications
-- Implement paper type categorization (e.g., by use case)
-- Add paper availability tracking
-- Include paper cost calculations
+### Input Validation
+- Real-time field validation
+- Error highlighting
+- Automated corrections where possible
+- Comprehensive error messaging
 
-### Data Management
-- Multiple save slots
-- Auto-save functionality
-- Cloud storage integration
-- Batch import/export capabilities
-- Template system for common configurations
+### Excel Import
+- Standardized template format
+- Bulk data validation
+- Error highlighting
+- Status reporting
 
-### Validation and Calculations
-- Enhanced trim size validation
-- Custom validation rules
-- Advanced spine calculation formulas
-- Cost estimation tools
-- Production time estimates
+### Session Management
+- JSON-based save format
+- Version tracking
+- Timestamp inclusion
+- Error recovery
 
-### User Interface
-- Dark mode support
-- Customizable interface layouts
-- Keyboard shortcuts
-- Bulk editing capabilities
-- Search and filter functionality
+## Validation Rules
 
-### Reporting
-- Generate detailed specification sheets
-- Production reports
-- Cost analysis reports
-- Historical data tracking
-- Usage statistics
+### ISBN Validation
+- 13-digit requirement
+- Checksum verification
+- Prefix validation (978/979)
 
-## Usage Instructions
+### Title Constraints
+- Maximum 58 characters
+- Automatic truncation
+- Special character handling
 
-1. Basic Entry Creation:
-   - Fill in all required fields
-   - Click "Add Entry" to add to the session
-   - Use "Clear Fields" to reset the form
+### Dimensional Rules
+- Positive number validation
+- Page extent divisibility rules
+- Trim width thresholds
 
-2. Saving Work:
-   - Click "Save" to open save dialog
-   - Enter desired filename
-   - Click "Save" to download JSON file
+## Calculations
 
-3. Loading Previous Work:
-   - Click "Load"
-   - Select previously saved JSON file
-   - Work session will be restored
+### Spine Size Calculation
+```javascript
+spineSize = (pageExtent * paperGrammage * paperVolume) / 20000
+```
 
-4. Generating CSV:
-   - Add required entries
-   - Select NEW/UPDT mode using toggle
-   - Click "Generate CSV"
-   - CSV will be downloaded with timestamp
+### Page Extent Adjustment
+- ≤ 156mm trim width: Divisible by 6
+- > 156mm trim width: Divisible by 4
 
-## Browser Support
-- Chrome (recommended)
-- Firefox
-- Edge
-- Safari
-
-## Contributing
-Contributions for new features, bug fixes, and improvements are welcome. Please follow the existing code style and add appropriate documentation.
-
-## Error Handling
-The application includes comprehensive error handling for:
-- Invalid ISBN numbers
-- Title length restrictions
-- Required field validation
-- File operations
-- Data format validation
-
-Each error is displayed to the user with clear, auto-dismissing messages.
+### Binding Adjustments
+- Cased binding: +4mm spine addition
+- Limp binding: No adjustment
