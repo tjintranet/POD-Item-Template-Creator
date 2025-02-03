@@ -112,16 +112,25 @@
                   </div>
                </div>
                <button class="btn btn-outline-primary mb-4 hover-btn" onclick="addEntry()">
-               <i class="bi bi-plus-lg me-1"></i>Add Entry
-               </button>
-               <button class="btn btn-secondary mb-4 ms-2" onclick="clearFields()">
-               <i class="bi bi-x-lg me-1"></i>Clear Fields
-               </button>
+                  <i class="bi bi-plus-lg me-1"></i>Add Entry
+              </button>
+              
+              <button class="btn btn-secondary mb-4 ms-2" onclick="clearFields()">
+                  <i class="bi bi-x-lg me-1"></i>Clear Fields
+              </button>
+              
+              <button class="btn btn-secondary mb-4 ms-2" onclick="downloadSelectedXML()" id="batchXMLBtn" disabled>
+                  <i class="bi bi-file-earmark-code me-1"></i>Download Selected XML
+              </button>
+
                <!-- Data Table -->
                <div class="table-responsive">
                   <table class="table table-bordered table-hover">
                      <thead class="table-light">
-                        <tr>
+                         <tr>
+                           <th style="width: 30px">
+                           <input type="checkbox" class="form-check-input" id="selectAll">
+                           </th>
                            <th style="width: 50px">Action</th>
                            <th>ISBN</th>
                            <th>Title</th>
@@ -164,6 +173,7 @@
       </div>
       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
       <script src="script.js"></script>
    </body>
 </html>

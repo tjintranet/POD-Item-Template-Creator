@@ -506,23 +506,135 @@ function updateTable() {
     entries.forEach((entry, index) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-                    <td>
-                        <button class="btn btn-danger btn-sm" onclick="deleteEntry(${index})">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </td>
-                    <td>${entry.isbn}</td>
-                    <td>${entry.title}</td>
-                    <td>${entry.trimHeight}</td>
-                    <td>${entry.trimWidth}</td>
-                    <td>${entry.spineSize}</td>
-                    <td>${entry.paperType}</td>
-                    <td>${entry.bindingStyle}</td>
-                    <td>${entry.pageExtent}</td>
-                    <td>${entry.lamination}</td>
-                `;
+            <td>
+                <input type="checkbox" class="form-check-input row-checkbox" data-index="${index}">
+            </td>
+            <td>
+                <button class="btn btn-danger btn-sm" onclick="deleteEntry(${index})">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+            <td>${entry.isbn}</td>
+            <td>${entry.title}</td>
+            <td>${entry.trimHeight}</td>
+            <td>${entry.trimWidth}</td>
+            <td>${entry.spineSize}</td>
+            <td>${entry.paperType}</td>
+            <td>${entry.bindingStyle}</td>
+            <td>${entry.pageExtent}</td>
+            <td>${entry.lamination}</td>
+        `;
         tbody.appendChild(tr);
     });
+    updateBatchButton();
+}
+
+// Handle select all checkbox
+document.getElementById('selectAll').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('.row-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = this.checked;
+    });
+    updateBatchButton();
+});
+
+// Update batch download button state
+function updateBatchButton() {
+    const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+    document.getElementById('batchXMLBtn').disabled = checkedBoxes.length === 0;
+}
+
+// Add event delegation for checkbox changes
+document.getElementById('entriesTableBody').addEventListener('change', function(e) {
+    if (e.target.classList.contains('row-checkbox')) {
+        updateBatchButton();
+        // Update "select all" checkbox
+        const allCheckboxes = document.querySelectorAll('.row-checkbox');
+        const checkedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+        document.getElementById('selectAll').checked = 
+            allCheckboxes.length === checkedCheckboxes.length;
+    }
+});
+
+// Helper function to escape XML special characters
+function escapeXml(unsafe) {
+    if (!unsafe) return '';
+    return unsafe
+        .toString()
+        .replace(/[<>&'"]/g, function (c) {
+            switch (c) {
+                case '<': return '&lt;';
+                case '>': return '&gt;';
+                case '&': return '&amp;';
+                case '\'': return '&apos;';
+                case '"': return '&quot;';
+            }
+        });
+}
+
+// Function to download multiple XML files
+async function downloadSelectedXML() {
+    const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+    if (checkedBoxes.length === 0) {
+        showError('No rows selected');
+        return;
+    }
+
+    // Create a zip file if multiple files are selected
+    if (checkedBoxes.length > 1) {
+        const zip = new JSZip();
+        
+        checkedBoxes.forEach(checkbox => {
+            const index = parseInt(checkbox.dataset.index);
+            const entry = entries[index];
+            const xmlContent = generateXMLContent(entry);
+            zip.file(`book_${entry.isbn}.xml`, xmlContent);
+        });
+
+        // Generate and download zip file
+        const zipBlob = await zip.generateAsync({type: 'blob'});
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '_');
+        downloadBlob(zipBlob, `pod_xml_batch_${timestamp}.zip`);
+    } else {
+        // If only one file, download it directly
+        const index = parseInt(checkedBoxes[0].dataset.index);
+        const entry = entries[index];
+        const xmlContent = generateXMLContent(entry);
+        const blob = new Blob([xmlContent], { type: 'application/xml' });
+        downloadBlob(blob, `book_${entry.isbn}.xml`);
+    }
+}
+
+// Helper function to generate XML content
+function generateXMLContent(entry) {
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<book>
+    <isbn>${entry.isbn}</isbn>
+    <title>${escapeXml(entry.title)}</title>
+    <specifications>
+        <trim>
+            <height>${entry.trimHeight}</height>
+            <width>${entry.trimWidth}</width>
+        </trim>
+        <spine>${entry.spineSize}</spine>
+        <paper>${escapeXml(entry.paperType)}</paper>
+        <binding>${entry.bindingStyle}</binding>
+        <pageExtent>${entry.pageExtent}</pageExtent>
+        <lamination>${entry.lamination}</lamination>
+    </specifications>
+</book>`;
+}
+
+// Helper function to download blob
+function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 }
 
 // Delete entry

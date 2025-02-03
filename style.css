@@ -178,3 +178,36 @@ input:checked+.slider:before {
 	padding-top: 0;
 	padding-bottom: 0;
 }
+
+/* Table cell styling */
+.table td {
+    vertical-align: middle;  /* Centers content vertically */
+    font-size: 0.85rem;
+}
+
+/* Specific styling for the action column */
+.table td:first-child {
+    text-align: center;
+    padding: 0.5rem;  /* Consistent padding */
+    min-width: 80px;  /* For the action buttons */
+}
+
+/* Styling for checkbox column */
+.table td:first-child,
+.table th:first-child {
+    width: 30px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* Ensure header is also vertically centered */
+.table th {
+    vertical-align: middle;
+    font-size: 1rem;
+}
+
+/* Make sure the checkbox is centered in its cell */
+.form-check-input {
+    margin: 0;
+    vertical-align: middle;
+}
