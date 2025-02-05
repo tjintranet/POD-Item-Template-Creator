@@ -103,7 +103,7 @@ const PAPER_SPECS = {
         volume: 9.7
     },
     mechanical_70: {
-        name: 'Mechanical Creamy 70 gsm',
+        name: 'Enso 70 gsm',
         grammage: 70,
         volume: 20
     }
