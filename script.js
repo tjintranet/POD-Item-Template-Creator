@@ -653,8 +653,8 @@ function handleFiles(files) {
 }
 
 async function processExcelFile(file) {
-    if (!file.name.match(/\.(xls|xlsx)$/i)) {
-        showError('Please upload an Excel file (.xls or .xlsx)');
+    if (!file.name.match(/\.(xls|xlsx|xlsm)$/i)) {
+        showError('Please upload an Excel file (.xls or .xlsx or .xlsm)');
         return;
     }
 
