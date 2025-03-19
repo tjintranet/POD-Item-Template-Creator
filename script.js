@@ -367,8 +367,15 @@ document.getElementById('isbn').addEventListener('input', function() {
     }
 });
 
+// Function to clean title (remove commas)
+function cleanTitle(title) {
+    return title.replace(/,/g, '');
+}
+
 // Update title character counter with immediate validation
-document.getElementById('title').addEventListener('input', function() {
+const titleInput = document.getElementById('title');
+titleInput.addEventListener('input', function() {
+    this.value = cleanTitle(this.value); // Remove commas on input
     const counter = document.getElementById('titleCounter');
     const length = this.value.length;
     counter.textContent = `${length} / 58 characters`;
@@ -376,11 +383,9 @@ document.getElementById('title').addEventListener('input', function() {
     if (length > 58) {
         counter.classList.add('text-danger');
         this.classList.add('is-invalid');
-        // Remove existing feedback if any
         const existingFeedback = document.getElementById('title-feedback');
         if (existingFeedback) existingFeedback.remove();
 
-        // Add new feedback
         const feedback = document.createElement('div');
         feedback.className = 'invalid-feedback d-block';
         feedback.id = 'title-feedback';
@@ -393,6 +398,7 @@ document.getElementById('title').addEventListener('input', function() {
         if (feedback) feedback.remove();
     }
 });
+
 
 // Validate and highlight field
 function validateField(id, condition, errorMessage) {
@@ -474,6 +480,7 @@ function addEntry() {
     isValid = validateField('title', isTitleValid,
         title.length === 0 ? 'Title is required' : 'Title cannot exceed 58 characters') && isValid;
     if (!isTitleValid) invalidFields.push('title');
+    
 
     // Validate other required fields
     const requiredFields = [
@@ -699,56 +706,32 @@ function validateAndImportData(jsonData) {
     const validLaminations = Array.from(document.getElementById('lamination').options).map(opt => opt.text);
 
     jsonData.forEach((row) => {
-        const trimWidth = parseInt(row['Trim Width']) || 0;
-        const pageExtent = parseInt(row['Page Extent']) || 0;
-        const divisor = trimWidth <= NARROW_WIDTH_THRESHOLD ? 6 : 4;
-        const adjustedPageExtent = Math.ceil(pageExtent / divisor) * divisor;
-        
-        const paperTypeKey = Object.keys(PAPER_SPECS).find(key => 
-            PAPER_SPECS[key].name === row['Paper Type']
-        );
-
-        let title = row['Title'] || '';
+        let title = row['Title'] ? cleanTitle(row['Title']) : ''; // Remove commas from title
         const invalidFields = [];
-        
+    
         if (title.length > 58) {
             title = title.substring(0, 58);
             invalidFields.push('title');
         }
-
+    
         const entry = {
             isbn: row['ISBN'] || '',
             title: title,
             trimHeight: row['Trim Height'] || '',
-            trimWidth: trimWidth.toString(),
+            trimWidth: row['Trim Width'] || '',
             paperType: row['Paper Type'] || '',
             bindingStyle: row['Binding Style'] || '',
-            pageExtent: adjustedPageExtent.toString(),
+            pageExtent: row['Page Extent'] || '',
             spineSize: '',
             lamination: row['Lamination'] || '',
             invalidFields: invalidFields
         };
-
-        if (paperTypeKey && entry.bindingStyle) {
-            entry.spineSize = calculateSpineSize(
-                adjustedPageExtent,
-                paperTypeKey,
-                entry.bindingStyle
-            ).toString();
-        }
-
-        if (!isValidISBN(entry.isbn).isValid) invalidFields.push('isbn');
-        if (!validPaperTypes.includes(entry.paperType)) invalidFields.push('paperType');
-        if (!validBindingStyles.includes(entry.bindingStyle)) invalidFields.push('bindingStyle');
-        if (!validLaminations.includes(entry.lamination)) invalidFields.push('lamination');
-        if (isNaN(entry.trimHeight) || entry.trimHeight <= 0) invalidFields.push('trimHeight');
-        if (isNaN(entry.trimWidth) || entry.trimWidth <= 0) invalidFields.push('trimWidth');
-        if (isNaN(entry.pageExtent) || entry.pageExtent <= 0) invalidFields.push('pageExtent');
-
+    
         invalidFields.length === 0 ? validCount++ : invalidCount++;
         entries.push(entry);
     });
-
+    
+    
     updateTableWithValidation();
     enableDownloadButton();
     document.getElementById('deleteAllBtn').disabled = entries.length === 0;
@@ -989,6 +972,43 @@ document.getElementById('fileUpload').addEventListener('change', async function(
             invalidFields.push('title');
             truncatedTitles++;
         }
+
+        function validateAndImportData(jsonData) {
+    entries = [];
+    let validCount = 0;
+    let invalidCount = 0;
+
+    jsonData.forEach((row) => {
+        let title = row['Title'] ? cleanTitle(row['Title']) : ''; // Remove commas from title
+        const invalidFields = [];
+    
+        if (title.length > 58) {
+            title = title.substring(0, 58);
+            invalidFields.push('title');
+        }
+    
+        const entry = {
+            isbn: row['ISBN'] || '',
+            title: title,
+            trimHeight: row['Trim Height'] || '',
+            trimWidth: row['Trim Width'] || '',
+            paperType: row['Paper Type'] || '',
+            bindingStyle: row['Binding Style'] || '',
+            pageExtent: row['Page Extent'] || '',
+            spineSize: '',
+            lamination: row['Lamination'] || '',
+            invalidFields: invalidFields
+        };
+    
+        invalidFields.length === 0 ? validCount++ : invalidCount++;
+        entries.push(entry);
+    });
+    
+
+    updateTableWithValidation();
+    enableDownloadButton();
+}
+
 
         const entry = {
             isbn: row['ISBN'] || '',
