@@ -120,6 +120,65 @@
                      </select>
                   </div>
                </div>
+
+               <!-- First Plate Section Fields -->
+               <div class="row mb-3">
+                  <div class="col-md-12">
+                     <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="hasPlateSection" onchange="togglePlateSectionFields()">
+                        <label class="form-check-label" for="hasPlateSection">Include first plate section</label>
+                     </div>
+                  </div>
+               </div>
+
+               <div class="row mb-3 plate-section-fields d-none">
+                  <div class="col-md-4">
+                     <label for="plateInsertPage" class="form-label">Insert After Page</label>
+                     <input type="number" class="form-control" id="plateInsertPage" placeholder="Page number">
+                  </div>
+                  <div class="col-md-4">
+                     <label for="platePages" class="form-label">Plate Pages</label>
+                     <input type="number" class="form-control" id="platePages" placeholder="Number of pages">
+                  </div>
+                  <div class="col-md-4">
+                     <label for="platePaperType" class="form-label">Plate Paper Type</label>
+                     <select class="form-select" id="platePaperType">
+                        <option value="">Select Plate Paper Type</option>
+                        <option value="Art Paper">Art Paper</option>
+                        <option value="Integrated">Integrated</option>
+                     </select>
+                  </div>
+               </div>
+               
+               <!-- Second Plate Section Fields -->
+               <div class="row mb-3">
+                  <div class="col-md-12">
+                     <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="hasSecondPlateSection" onchange="toggleSecondPlateSectionFields()">
+                        <label class="form-check-label" for="hasSecondPlateSection">Include second plate section</label>
+                     </div>
+                  </div>
+               </div>
+
+               <div class="row mb-3 second-plate-section-fields d-none">
+                  <div class="col-md-4">
+                     <label for="secondPlateInsertPage" class="form-label">Insert After Page</label>
+                     <input type="number" class="form-control" id="secondPlateInsertPage" placeholder="Page number">
+                  </div>
+                  <div class="col-md-4">
+                     <label for="secondPlatePages" class="form-label">Plate Pages</label>
+                     <input type="number" class="form-control" id="secondPlatePages" placeholder="Number of pages">
+                  </div>
+                  <div class="col-md-4">
+                     <label for="secondPlatePaperType" class="form-label">Plate Paper Type</label>
+                     <select class="form-select" id="secondPlatePaperType">
+                        <option value="">Select Plate Paper Type</option>
+                        <option value="Art Paper">Art Paper</option>
+                        <option value="Integrated">Integrated</option>
+                     </select>
+                  </div>
+               </div>
+
                <button class="btn btn-outline-primary mb-4 hover-btn" onclick="addEntry()">
                <i class="bi bi-plus-lg me-1"></i>Add Entry
                </button>
@@ -144,6 +203,8 @@
                             <th>Binding Style</th>
                             <th>Page Extent</th>
                             <th>Lamination</th>
+                            <th>Plate Section 1</th>
+                            <th>Plate Section 2</th>
                         </tr>
                     </thead>
                      <tbody id="entriesTableBody"></tbody>

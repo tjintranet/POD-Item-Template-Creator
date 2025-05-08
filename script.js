@@ -52,7 +52,41 @@ const NARROW_WIDTH_THRESHOLD = 156;
 const SPINE_CALCULATION_FACTOR = 20000;
 const HARDBACK_SPINE_ADDITION = 4;
 
+// Function to toggle first plate section fields
+function togglePlateSectionFields() {
+    const hasPlateSection = document.getElementById('hasPlateSection').checked;
+    const plateSectionFields = document.querySelectorAll('.plate-section-fields');
+    
+    plateSectionFields.forEach(field => {
+        if (hasPlateSection) {
+            field.classList.remove('d-none');
+        } else {
+            field.classList.add('d-none');
+            // Clear values when hiding
+            document.getElementById('plateInsertPage').value = '';
+            document.getElementById('platePages').value = '';
+            document.getElementById('platePaperType').value = '';
+        }
+    });
+}
 
+// Function to toggle second plate section fields
+function toggleSecondPlateSectionFields() {
+    const hasSecondPlateSection = document.getElementById('hasSecondPlateSection').checked;
+    const secondPlateSectionFields = document.querySelectorAll('.second-plate-section-fields');
+    
+    secondPlateSectionFields.forEach(field => {
+        if (hasSecondPlateSection) {
+            field.classList.remove('d-none');
+        } else {
+            field.classList.add('d-none');
+            // Clear values when hiding
+            document.getElementById('secondPlateInsertPage').value = '';
+            document.getElementById('secondPlatePages').value = '';
+            document.getElementById('secondPlatePaperType').value = '';
+        }
+    });
+}
 
 // Function to show save dialog
 function saveWork() {
@@ -422,40 +456,68 @@ function resetFieldValidation(id) {
     if (feedback) feedback.remove();
 }
 
-// Add entry to table
-function updateTable() {
-    if (entries.some(entry => entry.hasOwnProperty('invalidFields'))) {
-        updateTableWithValidation();
-    } else {
-        const tbody = document.getElementById('entriesTableBody');
-        tbody.innerHTML = '';
-        entries.forEach((entry, index) => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td class="text-center">
-                    <input type="checkbox" class="form-check-input entry-select" data-index="${index}">
-                </td>
-                <td class="text-nowrap">
-                    <button class="btn btn-danger btn-sm" onclick="deleteEntry(${index})">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                    <button class="btn btn-primary btn-sm ms-1" onclick="downloadXML(${index})">
-                        <i class="bi bi-file-earmark-code"></i>
-                    </button>
-                </td>
-                <td>${entry.isbn}</td>
-                <td>${entry.title}</td>
-                <td>${entry.trimHeight}</td>
-                <td>${entry.trimWidth}</td>
-                <td>${entry.spineSize}</td>
-                <td>${entry.paperType}</td>
-                <td>${entry.bindingStyle}</td>
-                <td>${entry.pageExtent}</td>
-                <td>${entry.lamination}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
+// Function to validate first plate section fields
+function validatePlateSectionFields() {
+    const hasPlateSection = document.getElementById('hasPlateSection').checked;
+    if (!hasPlateSection) return { isValid: true, invalidFields: [] };
+
+    let isValid = true;
+    const invalidFields = [];
+
+    // Validate plate insert page
+    const plateInsertPage = document.getElementById('plateInsertPage').value;
+    const isPlateInsertPageValid = plateInsertPage.trim() !== '' && parseInt(plateInsertPage) > 0;
+    isValid = validateField('plateInsertPage', isPlateInsertPageValid,
+        'Insert page is required and must be greater than 0') && isValid;
+    if (!isPlateInsertPageValid) invalidFields.push('plateInsertPage');
+
+    // Validate plate pages
+    const platePages = document.getElementById('platePages').value;
+    const isPlatePageValid = platePages.trim() !== '' && parseInt(platePages) > 0;
+    isValid = validateField('platePages', isPlatePageValid,
+        'Plate pages is required and must be greater than 0') && isValid;
+    if (!isPlatePageValid) invalidFields.push('platePages');
+
+    // Validate plate paper type
+    const platePaperType = document.getElementById('platePaperType').value;
+    const isPlatePaperTypeValid = platePaperType.trim() !== '';
+    isValid = validateField('platePaperType', isPlatePaperTypeValid,
+        'Plate paper type is required') && isValid;
+    if (!isPlatePaperTypeValid) invalidFields.push('platePaperType');
+
+    return { isValid, invalidFields };
+}
+
+// Function to validate second plate section fields
+function validateSecondPlateSectionFields() {
+    const hasSecondPlateSection = document.getElementById('hasSecondPlateSection').checked;
+    if (!hasSecondPlateSection) return { isValid: true, invalidFields: [] };
+
+    let isValid = true;
+    const invalidFields = [];
+
+    // Validate second plate insert page
+    const secondPlateInsertPage = document.getElementById('secondPlateInsertPage').value;
+    const isSecondPlateInsertPageValid = secondPlateInsertPage.trim() !== '' && parseInt(secondPlateInsertPage) > 0;
+    isValid = validateField('secondPlateInsertPage', isSecondPlateInsertPageValid,
+        'Insert page is required and must be greater than 0') && isValid;
+    if (!isSecondPlateInsertPageValid) invalidFields.push('secondPlateInsertPage');
+
+    // Validate second plate pages
+    const secondPlatePages = document.getElementById('secondPlatePages').value;
+    const isSecondPlatePageValid = secondPlatePages.trim() !== '' && parseInt(secondPlatePages) > 0;
+    isValid = validateField('secondPlatePages', isSecondPlatePageValid,
+        'Plate pages is required and must be greater than 0') && isValid;
+    if (!isSecondPlatePageValid) invalidFields.push('secondPlatePages');
+
+    // Validate second plate paper type
+    const secondPlatePaperType = document.getElementById('secondPlatePaperType').value;
+    const isSecondPlatePaperTypeValid = secondPlatePaperType.trim() !== '';
+    isValid = validateField('secondPlatePaperType', isSecondPlatePaperTypeValid,
+        'Plate paper type is required') && isValid;
+    if (!isSecondPlatePaperTypeValid) invalidFields.push('secondPlatePaperType');
+
+    return { isValid, invalidFields };
 }
 
 function addEntry() {
@@ -492,6 +554,30 @@ function addEntry() {
         if (!isFieldValid) invalidFields.push(field.id);
     });
 
+    // Check if first plate section is enabled and validate those fields
+    const hasPlateSection = document.getElementById('hasPlateSection').checked;
+    let plateSectionValidation = { isValid: true, invalidFields: [] };
+    
+    if (hasPlateSection) {
+        plateSectionValidation = validatePlateSectionFields();
+        isValid = isValid && plateSectionValidation.isValid;
+        if (!plateSectionValidation.isValid) {
+            invalidFields.push(...plateSectionValidation.invalidFields);
+        }
+    }
+    
+    // Check if second plate section is enabled and validate those fields
+    const hasSecondPlateSection = document.getElementById('hasSecondPlateSection').checked;
+    let secondPlateSectionValidation = { isValid: true, invalidFields: [] };
+    
+    if (hasSecondPlateSection) {
+        secondPlateSectionValidation = validateSecondPlateSectionFields();
+        isValid = isValid && secondPlateSectionValidation.isValid;
+        if (!secondPlateSectionValidation.isValid) {
+            invalidFields.push(...secondPlateSectionValidation.invalidFields);
+        }
+    }
+
     if (!isValid) {
         showError('Please fill in all required fields correctly');
         return;
@@ -500,7 +586,21 @@ function addEntry() {
     const paperTypeSelect = document.getElementById('paperType');
     const bindingStyleSelect = document.getElementById('bindingStyle');
     const laminationSelect = document.getElementById('lamination');
-
+    
+    // Get plate paper type values from selects
+    let platePaperType = '';
+    if (hasPlateSection) {
+        const platePaperTypeSelect = document.getElementById('platePaperType');
+        platePaperType = platePaperTypeSelect.options[platePaperTypeSelect.selectedIndex].text;
+    }
+    
+    let secondPlatePaperType = '';
+    if (hasSecondPlateSection) {
+        const secondPlatePaperTypeSelect = document.getElementById('secondPlatePaperType');
+        secondPlatePaperType = secondPlatePaperTypeSelect.options[secondPlatePaperTypeSelect.selectedIndex].text;
+    }
+    
+    // Create entry object
     const entry = {
         isbn: isbn,
         title: title,
@@ -511,6 +611,19 @@ function addEntry() {
         bindingStyle: bindingStyleSelect.options[bindingStyleSelect.selectedIndex].text,
         pageExtent: document.getElementById('pageExtent').value,
         lamination: laminationSelect.options[laminationSelect.selectedIndex].text,
+        
+        // First plate section
+        hasPlateSection: hasPlateSection,
+        plateInsertPage: hasPlateSection ? document.getElementById('plateInsertPage').value : '',
+        platePages: hasPlateSection ? document.getElementById('platePages').value : '',
+        platePaperType: platePaperType,
+        
+        // Second plate section
+        hasSecondPlateSection: hasSecondPlateSection,
+        secondPlateInsertPage: hasSecondPlateSection ? document.getElementById('secondPlateInsertPage').value : '',
+        secondPlatePages: hasSecondPlateSection ? document.getElementById('secondPlatePages').value : '',
+        secondPlatePaperType: secondPlatePaperType,
+        
         invalidFields: invalidFields
     };
 
@@ -520,7 +633,68 @@ function addEntry() {
     enableDownloadButton();
 }
 
-// Update table display
+function resetForm() {
+    const fields = ['isbn', 'title', 'trimHeight', 'trimWidth', 'spineSize',
+        'paperType', 'bindingStyle', 'pageExtent', 'lamination',
+        'plateInsertPage', 'platePages', 'platePaperType',
+        'secondPlateInsertPage', 'secondPlatePages', 'secondPlatePaperType'
+    ];
+
+    fields.forEach(field => {
+        const element = document.getElementById(field);
+        if (element) {
+            element.value = '';
+            resetFieldValidation(field);
+        }
+    });
+
+    // Reset first plate section checkbox and hide fields
+    document.getElementById('hasPlateSection').checked = false;
+    document.querySelectorAll('.plate-section-fields').forEach(field => {
+        field.classList.add('d-none');
+    });
+    
+    // Reset second plate section checkbox and hide fields
+    document.getElementById('hasSecondPlateSection').checked = false;
+    document.querySelectorAll('.second-plate-section-fields').forEach(field => {
+        field.classList.add('d-none');
+    });
+
+    document.getElementById('titleCounter').textContent = '0 / 58 characters';
+}
+
+// Clear Form Button
+function clearFields() {
+    const fields = ['isbn', 'title', 'trimHeight', 'trimWidth', 'spineSize',
+        'paperType', 'bindingStyle', 'pageExtent', 'lamination',
+        'plateInsertPage', 'platePages', 'platePaperType',
+        'secondPlateInsertPage', 'secondPlatePages', 'secondPlatePaperType'
+    ];
+
+    fields.forEach(field => {
+        const element = document.getElementById(field);
+        if (element) {
+            element.value = '';
+            element.classList.remove('is-invalid');
+            const feedback = document.getElementById(`${field}-feedback`);
+            if (feedback) feedback.remove();
+        }
+    });
+
+    // Reset first plate section checkbox and hide fields
+    document.getElementById('hasPlateSection').checked = false;
+    document.querySelectorAll('.plate-section-fields').forEach(field => {
+        field.classList.add('d-none');
+    });
+    
+    // Reset second plate section checkbox and hide fields
+    document.getElementById('hasSecondPlateSection').checked = false;
+    document.querySelectorAll('.second-plate-section-fields').forEach(field => {
+        field.classList.add('d-none');
+    });
+
+    document.getElementById('titleCounter').textContent = '0 / 58 characters';
+}
 
 function updateTable() {
     if (entries.some(entry => entry.hasOwnProperty('invalidFields'))) {
@@ -530,6 +704,19 @@ function updateTable() {
         tbody.innerHTML = '';
         entries.forEach((entry, index) => {
             const tr = document.createElement('tr');
+            
+            // Create plate section text
+            let plateSectionText = '';
+            if (entry.hasPlateSection) {
+                plateSectionText = `Insert after p${entry.plateInsertPage}-${entry.platePages}pp-${entry.platePaperType}`;
+            }
+            
+            // Create second plate section text
+            let secondPlateSectionText = '';
+            if (entry.hasSecondPlateSection) {
+                secondPlateSectionText = `Insert after p${entry.secondPlateInsertPage}-${entry.secondPlatePages}pp-${entry.secondPlatePaperType}`;
+            }
+            
             tr.innerHTML = `
                 <td class="text-center">
                     <input type="checkbox" class="form-check-input entry-select" data-index="${index}">
@@ -551,19 +738,33 @@ function updateTable() {
                 <td>${entry.bindingStyle}</td>
                 <td>${entry.pageExtent}</td>
                 <td>${entry.lamination}</td>
+                <td>${plateSectionText}</td>
+                <td>${secondPlateSectionText}</td>
             `;
             tbody.appendChild(tr);
         });
     }
 }
 
-// Base table update function
 function updateTableWithValidation() {
     const tbody = document.getElementById('entriesTableBody');
     tbody.innerHTML = '';
     
     entries.forEach((entry, index) => {
         const tr = document.createElement('tr');
+        
+        // Create first plate section text
+        let plateSectionText = '';
+        if (entry.hasPlateSection) {
+            plateSectionText = `Insert after p${entry.plateInsertPage}-${entry.platePages}pp-${entry.platePaperType}`;
+        }
+        
+        // Create second plate section text
+        let secondPlateSectionText = '';
+        if (entry.hasSecondPlateSection) {
+            secondPlateSectionText = `Insert after p${entry.secondPlateInsertPage}-${entry.secondPlatePages}pp-${entry.secondPlatePaperType}`;
+        }
+        
         tr.innerHTML = `
             <td class="text-center">
                 <input type="checkbox" class="form-check-input entry-select" data-index="${index}">
@@ -585,20 +786,133 @@ function updateTableWithValidation() {
             <td class="${entry.invalidFields?.includes('bindingStyle') ? 'invalid-cell' : ''}">${entry.bindingStyle}</td>
             <td class="${entry.invalidFields?.includes('pageExtent') ? 'invalid-cell' : ''}">${entry.pageExtent}</td>
             <td class="${entry.invalidFields?.includes('lamination') ? 'invalid-cell' : ''}">${entry.lamination}</td>
+            <td class="${entry.hasPlateSection && (entry.invalidFields?.includes('plateInsertPage') || entry.invalidFields?.includes('platePages') || entry.invalidFields?.includes('platePaperType')) ? 'invalid-cell' : ''}">${plateSectionText}</td>
+            <td class="${entry.hasSecondPlateSection && (entry.invalidFields?.includes('secondPlateInsertPage') || entry.invalidFields?.includes('secondPlatePages') || entry.invalidFields?.includes('secondPlatePaperType')) ? 'invalid-cell' : ''}">${secondPlateSectionText}</td>
         `;
         tbody.appendChild(tr);
     });
 }
 
-function updateTable() {
-    updateTableWithValidation();
+function escapeXML(str) {
+    return str.replace(/[<>&'"]/g, function (c) {
+        switch (c) {
+            case '<': return '&lt;';
+            case '>': return '&gt;';
+            case '&': return '&amp;';
+            case '\'': return '&apos;';
+            case '"': return '&quot;';
+        }
+    });
 }
 
-    document.getElementById('selectAll').addEventListener('change', function() {
-        const checkboxes = document.querySelectorAll('.entry-select');
-        checkboxes.forEach(checkbox => checkbox.checked = this.checked);
-        document.getElementById('downloadXMLBtn').disabled = !this.checked;
+function generateXML(entry) {
+    // Create first plate section XML if present
+    const plateSectionXML = entry.hasPlateSection ? `
+        <plate_section>
+            <insert_after_page>${escapeXML(entry.plateInsertPage)}</insert_after_page>
+            <plate_pages>${escapeXML(entry.platePages)}</plate_pages>
+            <plate_paper_type>${escapeXML(entry.platePaperType)}</plate_paper_type>
+        </plate_section>` : '';
+        
+    // Create second plate section XML if present
+    const secondPlateSectionXML = entry.hasSecondPlateSection ? `
+        <second_plate_section>
+            <insert_after_page>${escapeXML(entry.secondPlateInsertPage)}</insert_after_page>
+            <plate_pages>${escapeXML(entry.secondPlatePages)}</plate_pages>
+            <plate_paper_type>${escapeXML(entry.secondPlatePaperType)}</plate_paper_type>
+        </second_plate_section>` : '';
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<book>
+    <basic_info>
+        <isbn>${escapeXML(entry.isbn)}</isbn>
+        <title>${escapeXML(entry.title)}</title>
+    </basic_info>
+    <specifications>
+        <dimensions>
+            <trim_height>${escapeXML(entry.trimHeight)}</trim_height>
+            <trim_width>${escapeXML(entry.trimWidth)}</trim_width>
+            <spine_size>${escapeXML(entry.spineSize)}</spine_size>
+        </dimensions>
+        <materials>
+            <paper_type>${escapeXML(entry.paperType)}</paper_type>
+            <binding_style>${escapeXML(entry.bindingStyle)}</binding_style>
+            <lamination>${escapeXML(entry.lamination)}</lamination>
+        </materials>
+        <page_extent>${escapeXML(entry.pageExtent)}</page_extent>${plateSectionXML}${secondPlateSectionXML}
+    </specifications>
+</book>`;
+    return xml;
+}
+
+function downloadXML(index) {
+    const entry = entries[index];
+    const xml = generateXML(entry);
+    const blob = new Blob([xml], { type: 'application/xml' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${entry.isbn.replace(/[^0-9]/g, '')}_book.xml`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+function downloadSelectedXML() {
+    const selectedIndexes = Array.from(document.querySelectorAll('.entry-select:checked'))
+        .map(checkbox => parseInt(checkbox.dataset.index));
+    
+    if (selectedIndexes.length === 0) {
+        showError('No entries selected');
+        return;
+    }
+    
+    if (selectedIndexes.length === 1) {
+        downloadXML(selectedIndexes[0]);
+        return;
+    }
+    
+    // Multiple files - create ZIP
+    const zip = new JSZip();
+    selectedIndexes.forEach(index => {
+        const entry = entries[index];
+        const xml = generateXML(entry);
+        zip.file(`${entry.isbn.replace(/[^0-9]/g, '')}_book.xml`, xml);
     });
+    
+    zip.generateAsync({ type: 'blob' })
+        .then(blob => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'metadata.zip';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        });
+}
+
+document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('entry-select')) {
+        const checkedBoxes = document.querySelectorAll('.entry-select:checked').length;
+        document.getElementById('downloadXMLBtn').disabled = checkedBoxes === 0;
+    }
+});
+
+// Delete entry
+function deleteEntry(index) {
+    entries.splice(index, 1);
+    updateTable();
+    enableDownloadButton();
+}
+
+document.getElementById('selectAll').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('.entry-select');
+    checkboxes.forEach(checkbox => checkbox.checked = this.checked);
+    document.getElementById('downloadXMLBtn').disabled = !this.checked;
+});
 
 // Dropzone event listeners
 const dropzone = document.getElementById('dropzone');
@@ -697,6 +1011,7 @@ function validateAndImportData(jsonData) {
     const validPaperTypes = Array.from(document.getElementById('paperType').options).map(opt => opt.text);
     const validBindingStyles = Array.from(document.getElementById('bindingStyle').options).map(opt => opt.text);
     const validLaminations = Array.from(document.getElementById('lamination').options).map(opt => opt.text);
+    const validPlatePaperTypes = Array.from(document.getElementById('platePaperType').options).map(opt => opt.text);
 
     jsonData.forEach((row) => {
         const trimWidth = parseInt(row['Trim Width']) || 0;
@@ -716,6 +1031,52 @@ function validateAndImportData(jsonData) {
             invalidFields.push('title');
         }
 
+        // Process first plate section data - column 14 in the expected format "Insert after p144-8pp-Art Paper"
+        let hasPlateSection = false;
+        let plateInsertPage = '';
+        let platePages = '';
+        let platePaperType = '';
+        
+        const plateSectionText = row['Plate Section 1'] || '';
+        if (plateSectionText) {
+            hasPlateSection = true;
+            
+            // Parse the plate section text using regex
+            const platePattern = /Insert after p(\d+)-(\d+)pp-(.*)/;
+            const matches = plateSectionText.match(platePattern);
+            
+            if (matches && matches.length >= 4) {
+                plateInsertPage = matches[1];
+                platePages = matches[2];
+                platePaperType = matches[3];
+            } else {
+                invalidFields.push('plateInsertPage', 'platePages', 'platePaperType');
+            }
+        }
+        
+        // Process second plate section data - column 15
+        let hasSecondPlateSection = false;
+        let secondPlateInsertPage = '';
+        let secondPlatePages = '';
+        let secondPlatePaperType = '';
+        
+        const secondPlateSectionText = row['Plate Section 2'] || '';
+        if (secondPlateSectionText) {
+            hasSecondPlateSection = true;
+            
+            // Parse the second plate section text using regex
+            const secondPlatePattern = /Insert after p(\d+)-(\d+)pp-(.*)/;
+            const secondMatches = secondPlateSectionText.match(secondPlatePattern);
+            
+            if (secondMatches && secondMatches.length >= 4) {
+                secondPlateInsertPage = secondMatches[1];
+                secondPlatePages = secondMatches[2];
+                secondPlatePaperType = secondMatches[3];
+            } else {
+                invalidFields.push('secondPlateInsertPage', 'secondPlatePages', 'secondPlatePaperType');
+            }
+        }
+
         const entry = {
             isbn: row['ISBN'] || '',
             title: title,
@@ -726,6 +1087,19 @@ function validateAndImportData(jsonData) {
             pageExtent: adjustedPageExtent.toString(),
             spineSize: '',
             lamination: row['Lamination'] || '',
+            
+            // First plate section
+            hasPlateSection: hasPlateSection,
+            plateInsertPage: plateInsertPage,
+            platePages: platePages,
+            platePaperType: platePaperType,
+            
+            // Second plate section
+            hasSecondPlateSection: hasSecondPlateSection,
+            secondPlateInsertPage: secondPlateInsertPage,
+            secondPlatePages: secondPlatePages,
+            secondPlatePaperType: secondPlatePaperType,
+            
             invalidFields: invalidFields
         };
 
@@ -744,6 +1118,32 @@ function validateAndImportData(jsonData) {
         if (isNaN(entry.trimHeight) || entry.trimHeight <= 0) invalidFields.push('trimHeight');
         if (isNaN(entry.trimWidth) || entry.trimWidth <= 0) invalidFields.push('trimWidth');
         if (isNaN(entry.pageExtent) || entry.pageExtent <= 0) invalidFields.push('pageExtent');
+        
+        // Validate first plate section fields if present
+        if (hasPlateSection) {
+            if (!plateInsertPage || isNaN(plateInsertPage) || parseInt(plateInsertPage) <= 0) {
+                invalidFields.push('plateInsertPage');
+            }
+            if (!platePages || isNaN(platePages) || parseInt(platePages) <= 0) {
+                invalidFields.push('platePages');
+            }
+            if (!platePaperType || !validPlatePaperTypes.includes(platePaperType)) {
+                invalidFields.push('platePaperType');
+            }
+        }
+        
+        // Validate second plate section fields if present
+        if (hasSecondPlateSection) {
+            if (!secondPlateInsertPage || isNaN(secondPlateInsertPage) || parseInt(secondPlateInsertPage) <= 0) {
+                invalidFields.push('secondPlateInsertPage');
+            }
+            if (!secondPlatePages || isNaN(secondPlatePages) || parseInt(secondPlatePages) <= 0) {
+                invalidFields.push('secondPlatePages');
+            }
+            if (!secondPlatePaperType || !validPlatePaperTypes.includes(secondPlatePaperType)) {
+                invalidFields.push('secondPlatePaperType');
+            }
+        }
 
         invalidFields.length === 0 ? validCount++ : invalidCount++;
         entries.push(entry);
@@ -769,29 +1169,6 @@ function deleteAllEntries() {
         showError('All entries deleted');
     }
 }
-
-// Delete entry
-function deleteEntry(index) {
-    entries.splice(index, 1);
-    updateTable();
-    enableDownloadButton();
-}
-
-// Reset form
-function resetForm() {
-    const fields = ['isbn', 'title', 'trimHeight', 'trimWidth', 'spineSize',
-        'paperType', 'bindingStyle', 'pageExtent', 'lamination'
-    ];
-
-    fields.forEach(field => {
-        const element = document.getElementById(field);
-        element.value = '';
-        resetFieldValidation(field);
-    });
-
-    document.getElementById('titleCounter').textContent = '0 / 58 characters';
-}
-
 
 // Show error/success message with auto-fade
 function showError(message, duration = 4000) {
@@ -820,217 +1197,13 @@ function showError(message, duration = 4000) {
     }, duration);
 }
 
-
 // Enable/disable download button
 function enableDownloadButton() {
     document.getElementById('downloadBtn').disabled = entries.length === 0;
+    document.getElementById('deleteAllBtn').disabled = entries.length === 0;
 }
 
-// Clear Form Button
-function clearFields() {
-    const fields = ['isbn', 'title', 'trimHeight', 'trimWidth', 'spineSize',
-        'paperType', 'bindingStyle', 'pageExtent', 'lamination'
-    ];
-
-    fields.forEach(field => {
-        const element = document.getElementById(field);
-        element.value = '';
-        element.classList.remove('is-invalid');
-        const feedback = document.getElementById(`${field}-feedback`);
-        if (feedback) feedback.remove();
-    });
-
-    document.getElementById('titleCounter').textContent = '0 / 58 characters';
-}
-
-function escapeXML(str) {
-    return str.replace(/[<>&'"]/g, function (c) {
-        switch (c) {
-            case '<': return '&lt;';
-            case '>': return '&gt;';
-            case '&': return '&amp;';
-            case '\'': return '&apos;';
-            case '"': return '&quot;';
-        }
-    });
-}
-
-function generateXML(entry) {
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<book>
-    <basic_info>
-        <isbn>${escapeXML(entry.isbn)}</isbn>
-        <title>${escapeXML(entry.title)}</title>
-    </basic_info>
-    <specifications>
-        <dimensions>
-            <trim_height>${escapeXML(entry.trimHeight)}</trim_height>
-            <trim_width>${escapeXML(entry.trimWidth)}</trim_width>
-            <spine_size>${escapeXML(entry.spineSize)}</spine_size>
-        </dimensions>
-        <materials>
-            <paper_type>${escapeXML(entry.paperType)}</paper_type>
-            <binding_style>${escapeXML(entry.bindingStyle)}</binding_style>
-            <lamination>${escapeXML(entry.lamination)}</lamination>
-        </materials>
-        <page_extent>${escapeXML(entry.pageExtent)}</page_extent>
-    </specifications>
-</book>`;
-    return xml;
-}
-
-function downloadXML(index) {
-    const entry = entries[index];
-    const xml = generateXML(entry);
-    const blob = new Blob([xml], { type: 'application/xml' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${entry.isbn.replace(/[^0-9]/g, '')}_book.xml`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-}
-
-function downloadSelectedXML() {
-    const selectedIndexes = Array.from(document.querySelectorAll('.entry-select:checked'))
-        .map(checkbox => parseInt(checkbox.dataset.index));
-    
-    if (selectedIndexes.length === 0) {
-        showError('No entries selected');
-        return;
-    }
-    
-    if (selectedIndexes.length === 1) {
-        downloadXML(selectedIndexes[0]);
-        return;
-    }
-    
-    // Multiple files - create ZIP
-    const zip = new JSZip();
-    selectedIndexes.forEach(index => {
-        const entry = entries[index];
-        const xml = generateXML(entry);
-        zip.file(`${entry.isbn.replace(/[^0-9]/g, '')}_book.xml`, xml);
-    });
-    
-    zip.generateAsync({ type: 'blob' })
-        .then(blob => {
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'metadata.zip';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-        });
-}
-
-document.addEventListener('change', function(e) {
-    if (e.target.classList.contains('entry-select')) {
-        const checkedBoxes = document.querySelectorAll('.entry-select:checked').length;
-        document.getElementById('downloadXMLBtn').disabled = checkedBoxes === 0;
-    }
-});
-
-// Handle file upload
-document.getElementById('fileUpload').addEventListener('change', async function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    try {
-        const data = await file.arrayBuffer();
-        const workbook = XLSX.read(data, {
-            type: 'array',
-            cellDates: true,
-            cellNF: true,
-            cellText: true
-        });
-
-        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, {
-            raw: false,
-            defval: ''
-        });
-
-        // Clear existing entries
-        entries = [];
-
-        // Process each row
-        jsonData.forEach(row => {
-            const isbn = row['ISBN'] || '';
-            if (!isbn || !isValidISBN(isbn)) {
-                console.warn(`Skipping row with invalid ISBN: ${isbn}`);
-                return;
-            }
-
-            // Parse numeric values
-            const trimWidth = parseInt(row['Trim Width']) || 0;
-        const pageExtent = parseInt(row['Page Extent']) || 0;
-        const divisor = trimWidth <= NARROW_WIDTH_THRESHOLD ? 6 : 4;
-        const adjustedPageExtent = Math.ceil(pageExtent / divisor) * divisor;
-        
-        // Get paper type value from dropdown text
-        const paperTypeKey = Object.keys(PAPER_SPECS).find(key => 
-            PAPER_SPECS[key].name === row['Paper Type']
-        );
-        
-        // Calculate spine size
-        const spineSize = paperTypeKey && row['Binding Style'] ? 
-            calculateSpineSize(adjustedPageExtent, paperTypeKey, row['Binding Style']).toString() : '';
-
-        let title = row['Title'] || '';
-        const invalidFields = [];
-        
-        if (title.length > 58) {
-            title = title.substring(0, 58);
-            invalidFields.push('title');
-            truncatedTitles++;
-        }
-
-        const entry = {
-            isbn: row['ISBN'] || '',
-            title: title,
-            trimHeight: row['Trim Height'] || '',
-            trimWidth: trimWidth.toString(),
-            paperType: row['Paper Type'] || '',
-            bindingStyle: row['Binding Style'] || '',
-            pageExtent: adjustedPageExtent.toString(),
-            spineSize: spineSize,
-            lamination: row['Lamination'] || '',
-            invalidFields: invalidFields
-        };
-
-            if (entry.title.length <= 58) {
-                entries.push(entry);
-            } else {
-                console.warn(`Skipping row with title exceeding 58 characters: ${entry.title}`);
-            }
-        });
-
-        updateTable();
-        enableDownloadButton();
-        this.value = '';
-
-        if (entries.length > 0) {
-            showError(`Successfully imported ${entries.length} entries`);
-        } else {
-            showError('No valid entries found in the Excel file');
-        }
-    } catch (error) {
-        console.error('Error processing Excel file:', error);
-        showError('Error processing Excel file: ' + error.message);
-    }
-});
-
-document.getElementById('updateToggle').addEventListener('change', function() {
-    const label = document.getElementById('toggleLabel');
-    label.textContent = this.checked ? 'UPDT' : 'NEW';
-});
-
-// Generate CSV function - placeholder for your specific format
+// Generate CSV function
 function generateCSV() {
     if (entries.length === 0) {
         showError('No entries to export');
@@ -1049,6 +1222,18 @@ function generateCSV() {
             );
             const grammage = paperTypeKey ? PAPER_SPECS[paperTypeKey].grammage.toString() : '';
 
+            // Format plate section data in the required format: "Insert after p144-8pp-Art Paper"
+            let firstPlateSection = '';
+            if (entry.hasPlateSection) {
+                firstPlateSection = `Insert after p${entry.plateInsertPage}-${entry.platePages}pp-${entry.platePaperType}`;
+            }
+            
+            // Format second plate section data
+            let secondPlateSection = '';
+            if (entry.hasSecondPlateSection) {
+                secondPlateSection = `Insert after p${entry.secondPlateInsertPage}-${entry.secondPlatePages}pp-${entry.secondPlatePaperType}`;
+            }
+
             // Format each row according to template format
             return [
                 'ISBN', // Static 'ISBN'
@@ -1063,7 +1248,9 @@ function generateCSV() {
                 entry.pageExtent, // Page extent
                 grammage, // Paper grammage from specs
                 entry.paperType, // Paper type
-                'N' // Static 'N'
+                'N', // Static 'N'
+                firstPlateSection, // Column 14: First plate section
+                secondPlateSection  // Column 15: Second plate section
             ].map(value => value.toString()).join(',');
         });
 
@@ -1097,3 +1284,155 @@ function generateCSV() {
         showError('Error generating CSV file');
     }
 }
+
+// Handle file upload 
+document.getElementById('fileUpload').addEventListener('change', async function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+        const data = await file.arrayBuffer();
+        const workbook = XLSX.read(data, {
+            type: 'array',
+            cellDates: true,
+            cellNF: true,
+            cellText: true
+        });
+
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+            raw: false,
+            defval: ''
+        });
+
+        // Clear existing entries
+        entries = [];
+
+        // Process each row
+        jsonData.forEach(row => {
+            const isbn = row['ISBN'] || '';
+            if (!isbn || !isValidISBN(isbn).isValid) {
+                console.warn(`Skipping row with invalid ISBN: ${isbn}`);
+                return;
+            }
+
+            // Parse numeric values
+            const trimWidth = parseInt(row['Trim Width']) || 0;
+            const pageExtent = parseInt(row['Page Extent']) || 0;
+            const divisor = trimWidth <= NARROW_WIDTH_THRESHOLD ? 6 : 4;
+            const adjustedPageExtent = Math.ceil(pageExtent / divisor) * divisor;
+            
+            // Get paper type value from dropdown text
+            const paperTypeKey = Object.keys(PAPER_SPECS).find(key => 
+                PAPER_SPECS[key].name === row['Paper Type']
+            );
+            
+            // Calculate spine size
+            const spineSize = paperTypeKey && row['Binding Style'] ? 
+                calculateSpineSize(adjustedPageExtent, paperTypeKey, row['Binding Style']).toString() : '';
+
+            let title = row['Title'] || '';
+            const invalidFields = [];
+            let truncatedTitles = 0;
+            
+            if (title.length > 58) {
+                title = title.substring(0, 58);
+                invalidFields.push('title');
+                truncatedTitles++;
+            }
+
+            // Process first plate section data
+            let hasPlateSection = false;
+            let plateInsertPage = '';
+            let platePages = '';
+            let platePaperType = '';
+            
+            const plateSectionText = row['Plate Section 1'] || '';
+            if (plateSectionText) {
+                hasPlateSection = true;
+                
+                // Parse the plate section text using regex
+                const platePattern = /Insert after p(\d+)-(\d+)pp-(.*)/;
+                const matches = plateSectionText.match(platePattern);
+                
+                if (matches && matches.length >= 4) {
+                    plateInsertPage = matches[1];
+                    platePages = matches[2];
+                    platePaperType = matches[3];
+                } else {
+                    invalidFields.push('plateInsertPage', 'platePages', 'platePaperType');
+                }
+            }
+            
+            // Process second plate section data
+            let hasSecondPlateSection = false;
+            let secondPlateInsertPage = '';
+            let secondPlatePages = '';
+            let secondPlatePaperType = '';
+            
+            const secondPlateSectionText = row['Plate Section 2'] || '';
+            if (secondPlateSectionText) {
+                hasSecondPlateSection = true;
+                
+                // Parse the second plate section text using regex
+                const secondPlatePattern = /Insert after p(\d+)-(\d+)pp-(.*)/;
+                const secondMatches = secondPlateSectionText.match(secondPlatePattern);
+                
+                if (secondMatches && secondMatches.length >= 4) {
+                    secondPlateInsertPage = secondMatches[1];
+                    secondPlatePages = secondMatches[2];
+                    secondPlatePaperType = secondMatches[3];
+                } else {
+                    invalidFields.push('secondPlateInsertPage', 'secondPlatePages', 'secondPlatePaperType');
+                }
+            }
+
+            const entry = {
+                isbn: row['ISBN'] || '',
+                title: title,
+                trimHeight: row['Trim Height'] || '',
+                trimWidth: trimWidth.toString(),
+                paperType: row['Paper Type'] || '',
+                bindingStyle: row['Binding Style'] || '',
+                pageExtent: adjustedPageExtent.toString(),
+                spineSize: spineSize,
+                lamination: row['Lamination'] || '',
+                
+                // First plate section
+                hasPlateSection: hasPlateSection,
+                plateInsertPage: plateInsertPage,
+                platePages: platePages,
+                platePaperType: platePaperType,
+                
+                // Second plate section
+                hasSecondPlateSection: hasSecondPlateSection,
+                secondPlateInsertPage: secondPlateInsertPage,
+                secondPlatePages: secondPlatePages,
+                secondPlatePaperType: secondPlatePaperType,
+                
+                invalidFields: invalidFields
+            };
+
+            entries.push(entry);
+        });
+
+        updateTable();
+        enableDownloadButton();
+        document.getElementById('deleteAllBtn').disabled = entries.length === 0;
+        this.value = '';
+
+        if (entries.length > 0) {
+            showError(`Successfully imported ${entries.length} entries`);
+        } else {
+            showError('No valid entries found in the Excel file');
+        }
+    } catch (error) {
+        console.error('Error processing Excel file:', error);
+        showError('Error processing Excel file: ' + error.message);
+    }
+});
+
+document.getElementById('updateToggle').addEventListener('change', function() {
+    const label = document.getElementById('toggleLabel');
+    label.textContent = this.checked ? 'UPDT' : 'NEW';
+});
