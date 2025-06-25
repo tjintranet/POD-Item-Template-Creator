@@ -44,6 +44,21 @@ const PAPER_SPECS = {
         name: 'Enso 70 gsm',
         grammage: 70,
         volume: 20
+    },
+    holmen_bulky_52: {
+        name: 'Holmen Bulky 52 gsm',
+        grammage: 52,
+        volume: 22
+    },
+    holmen_book_55: {
+        name: 'Holmen Book 55 gsm',
+        grammage: 55,
+        volume: 19.6
+    },
+    holmen_cream_65: {
+        name: 'Holmen Cream 65 gsm',
+        grammage: 65,
+        volume: 21.2
     }
 };
 
@@ -51,6 +66,27 @@ const PAPER_SPECS = {
 const NARROW_WIDTH_THRESHOLD = 156;
 const SPINE_CALCULATION_FACTOR = 20000;
 const HARDBACK_SPINE_ADDITION = 4;
+
+// Function to remove commas from strings to prevent CSV corruption
+function removeCommasFromString(str) {
+    if (typeof str === 'string') {
+        return str.replace(/,/g, '');
+    }
+    return str;
+}
+
+// Function to clean all string fields in an object to remove commas
+function cleanStringFieldsForCSV(obj) {
+    const cleanedObj = {};
+    for (const [key, value] of Object.entries(obj)) {
+        if (typeof value === 'string') {
+            cleanedObj[key] = removeCommasFromString(value);
+        } else {
+            cleanedObj[key] = value;
+        }
+    }
+    return cleanedObj;
+}
 
 // Function to toggle first plate section fields
 function togglePlateSectionFields() {
@@ -159,6 +195,7 @@ function downloadSaveFile() {
         showError('Error saving work');
     }
 }
+
 // Create hidden file input (put this at the top with other initializations)
 const loadInput = document.createElement('input');
 loadInput.type = 'file';
@@ -323,6 +360,7 @@ function updateSpineSize() {
         document.getElementById('spineSize').value = spineSize;
     }
 }
+
 // Add event listeners for spine size calculation
 ['pageExtent', 'paperType', 'bindingStyle'].forEach(id => {
     document.getElementById(id).addEventListener('change', updateSpineSize);
@@ -600,29 +638,29 @@ function addEntry() {
         secondPlatePaperType = secondPlatePaperTypeSelect.options[secondPlatePaperTypeSelect.selectedIndex].text;
     }
     
-    // Create entry object
+    // Create entry object with comma removal
     const entry = {
-        isbn: isbn,
-        title: title,
+        isbn: removeCommasFromString(isbn),
+        title: removeCommasFromString(title),
         trimHeight: document.getElementById('trimHeight').value,
         trimWidth: document.getElementById('trimWidth').value,
         spineSize: document.getElementById('spineSize').value,
-        paperType: paperTypeSelect.options[paperTypeSelect.selectedIndex].text,
-        bindingStyle: bindingStyleSelect.options[bindingStyleSelect.selectedIndex].text,
+        paperType: removeCommasFromString(paperTypeSelect.options[paperTypeSelect.selectedIndex].text),
+        bindingStyle: removeCommasFromString(bindingStyleSelect.options[bindingStyleSelect.selectedIndex].text),
         pageExtent: document.getElementById('pageExtent').value,
-        lamination: laminationSelect.options[laminationSelect.selectedIndex].text,
+        lamination: removeCommasFromString(laminationSelect.options[laminationSelect.selectedIndex].text),
         
         // First plate section
         hasPlateSection: hasPlateSection,
         plateInsertPage: hasPlateSection ? document.getElementById('plateInsertPage').value : '',
         platePages: hasPlateSection ? document.getElementById('platePages').value : '',
-        platePaperType: platePaperType,
+        platePaperType: removeCommasFromString(platePaperType),
         
         // Second plate section
         hasSecondPlateSection: hasSecondPlateSection,
         secondPlateInsertPage: hasSecondPlateSection ? document.getElementById('secondPlateInsertPage').value : '',
         secondPlatePages: hasSecondPlateSection ? document.getElementById('secondPlatePages').value : '',
-        secondPlatePaperType: secondPlatePaperType,
+        secondPlatePaperType: removeCommasFromString(secondPlatePaperType),
         
         invalidFields: invalidFields
     };
@@ -1007,6 +1045,7 @@ function validateAndImportData(jsonData) {
     entries = [];
     let validCount = 0;
     let invalidCount = 0;
+    let commaRemovedCount = 0;
 
     const validPaperTypes = Array.from(document.getElementById('paperType').options).map(opt => opt.text);
     const validBindingStyles = Array.from(document.getElementById('bindingStyle').options).map(opt => opt.text);
@@ -1014,16 +1053,26 @@ function validateAndImportData(jsonData) {
     const validPlatePaperTypes = Array.from(document.getElementById('platePaperType').options).map(opt => opt.text);
 
     jsonData.forEach((row) => {
-        const trimWidth = parseInt(row['Trim Width']) || 0;
-        const pageExtent = parseInt(row['Page Extent']) || 0;
+        // Clean the row data by removing commas from string fields
+        const cleanedRow = cleanStringFieldsForCSV(row);
+        
+        // Check if commas were removed
+        const originalStringFields = Object.values(row).filter(val => typeof val === 'string').join('');
+        const cleanedStringFields = Object.values(cleanedRow).filter(val => typeof val === 'string').join('');
+        if (originalStringFields.length > cleanedStringFields.length) {
+            commaRemovedCount++;
+        }
+
+        const trimWidth = parseInt(cleanedRow['Trim Width']) || 0;
+        const pageExtent = parseInt(cleanedRow['Page Extent']) || 0;
         const divisor = trimWidth <= NARROW_WIDTH_THRESHOLD ? 6 : 4;
         const adjustedPageExtent = Math.ceil(pageExtent / divisor) * divisor;
         
         const paperTypeKey = Object.keys(PAPER_SPECS).find(key => 
-            PAPER_SPECS[key].name === row['Paper Type']
+            PAPER_SPECS[key].name === cleanedRow['Paper Type']
         );
 
-        let title = row['Title'] || '';
+        let title = removeCommasFromString(cleanedRow['Title'] || '');
         const invalidFields = [];
         
         if (title.length > 58) {
@@ -1037,7 +1086,7 @@ function validateAndImportData(jsonData) {
         let platePages = '';
         let platePaperType = '';
         
-        const plateSectionText = row['Plate Section 1'] || '';
+        const plateSectionText = removeCommasFromString(cleanedRow['Plate Section 1'] || '');
         if (plateSectionText) {
             hasPlateSection = true;
             
@@ -1048,7 +1097,7 @@ function validateAndImportData(jsonData) {
             if (matches && matches.length >= 4) {
                 plateInsertPage = matches[1];
                 platePages = matches[2];
-                platePaperType = matches[3];
+                platePaperType = removeCommasFromString(matches[3]);
             } else {
                 invalidFields.push('plateInsertPage', 'platePages', 'platePaperType');
             }
@@ -1060,7 +1109,7 @@ function validateAndImportData(jsonData) {
         let secondPlatePages = '';
         let secondPlatePaperType = '';
         
-        const secondPlateSectionText = row['Plate Section 2'] || '';
+        const secondPlateSectionText = removeCommasFromString(cleanedRow['Plate Section 2'] || '');
         if (secondPlateSectionText) {
             hasSecondPlateSection = true;
             
@@ -1071,22 +1120,22 @@ function validateAndImportData(jsonData) {
             if (secondMatches && secondMatches.length >= 4) {
                 secondPlateInsertPage = secondMatches[1];
                 secondPlatePages = secondMatches[2];
-                secondPlatePaperType = secondMatches[3];
+                secondPlatePaperType = removeCommasFromString(secondMatches[3]);
             } else {
                 invalidFields.push('secondPlateInsertPage', 'secondPlatePages', 'secondPlatePaperType');
             }
         }
 
         const entry = {
-            isbn: row['ISBN'] || '',
+            isbn: removeCommasFromString(cleanedRow['ISBN'] || ''),
             title: title,
-            trimHeight: row['Trim Height'] || '',
+            trimHeight: cleanedRow['Trim Height'] || '',
             trimWidth: trimWidth.toString(),
-            paperType: row['Paper Type'] || '',
-            bindingStyle: row['Binding Style'] || '',
+            paperType: removeCommasFromString(cleanedRow['Paper Type'] || ''),
+            bindingStyle: removeCommasFromString(cleanedRow['Binding Style'] || ''),
             pageExtent: adjustedPageExtent.toString(),
             spineSize: '',
-            lamination: row['Lamination'] || '',
+            lamination: removeCommasFromString(cleanedRow['Lamination'] || ''),
             
             // First plate section
             hasPlateSection: hasPlateSection,
@@ -1152,10 +1201,15 @@ function validateAndImportData(jsonData) {
     updateTableWithValidation();
     enableDownloadButton();
     document.getElementById('deleteAllBtn').disabled = entries.length === 0;
+    
+    // Reset select all checkbox when new file is uploaded
+    document.getElementById('selectAll').checked = false;
+    document.getElementById('downloadXMLBtn').disabled = true;
 
     const truncatedCount = entries.filter(e => e.invalidFields.includes('title')).length;
     const truncationMsg = truncatedCount > 0 ? ` (${truncatedCount} titles truncated to 58 characters)` : '';
-    showError(`Imported ${validCount} valid and ${invalidCount} invalid entries${truncationMsg}`);
+    const commaMsg = commaRemovedCount > 0 ? ` (commas removed from ${commaRemovedCount} entries)` : '';
+    showError(`Imported ${validCount} valid and ${invalidCount} invalid entries${truncationMsg}${commaMsg}`);
 }
 
 function deleteAllEntries() {
@@ -1165,6 +1219,11 @@ function deleteAllEntries() {
         enableDownloadButton();
         document.getElementById('deleteAllBtn').disabled = true;
         document.getElementById('downloadBtn').disabled = true;
+        
+        // Reset select all checkbox when entries are deleted
+        document.getElementById('selectAll').checked = false;
+        document.getElementById('downloadXMLBtn').disabled = true;
+        
         document.getElementById('fileUpload').value = ''; // Reset file input
         showError('All entries deleted');
     }
@@ -1203,7 +1262,7 @@ function enableDownloadButton() {
     document.getElementById('deleteAllBtn').disabled = entries.length === 0;
 }
 
-// Generate CSV function
+// Generate CSV function with comma-safe output
 function generateCSV() {
     if (entries.length === 0) {
         showError('No entries to export');
@@ -1223,31 +1282,32 @@ function generateCSV() {
             const grammage = paperTypeKey ? PAPER_SPECS[paperTypeKey].grammage.toString() : '';
 
             // Format plate section data in the required format: "Insert after p144-8pp-Art Paper"
+            // Remove commas from plate section data
             let firstPlateSection = '';
             if (entry.hasPlateSection) {
-                firstPlateSection = `Insert after p${entry.plateInsertPage}-${entry.platePages}pp-${entry.platePaperType}`;
+                firstPlateSection = removeCommasFromString(`Insert after p${entry.plateInsertPage}-${entry.platePages}pp-${entry.platePaperType}`);
             }
             
             // Format second plate section data
             let secondPlateSection = '';
             if (entry.hasSecondPlateSection) {
-                secondPlateSection = `Insert after p${entry.secondPlateInsertPage}-${entry.secondPlatePages}pp-${entry.secondPlatePaperType}`;
+                secondPlateSection = removeCommasFromString(`Insert after p${entry.secondPlateInsertPage}-${entry.secondPlatePages}pp-${entry.secondPlatePaperType}`);
             }
 
-            // Format each row according to template format
+            // Format each row according to template format with comma removal
             return [
                 'ISBN', // Static 'ISBN'
                 action, // NEW or UPDT based on toggle
-                entry.isbn, // ISBN value
-                entry.title, // Title
-                entry.bindingStyle, // Binding style (Limp/Cased)
-                entry.lamination, // Lamination (Gloss/Matt)
+                removeCommasFromString(entry.isbn), // ISBN value
+                removeCommasFromString(entry.title), // Title
+                removeCommasFromString(entry.bindingStyle), // Binding style (Limp/Cased)
+                removeCommasFromString(entry.lamination), // Lamination (Gloss/Matt)
                 entry.trimHeight, // Height (234)
                 entry.trimWidth, // Width (156)
                 entry.spineSize, // Spine size
                 entry.pageExtent, // Page extent
                 grammage, // Paper grammage from specs
-                entry.paperType, // Paper type
+                removeCommasFromString(entry.paperType), // Paper type
                 'N', // Static 'N'
                 firstPlateSection, // Column 14: First plate section
                 secondPlateSection  // Column 15: Second plate section
@@ -1285,7 +1345,7 @@ function generateCSV() {
     }
 }
 
-// Handle file upload 
+// Handle file upload with comma removal
 document.getElementById('fileUpload').addEventListener('change', async function(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -1307,31 +1367,42 @@ document.getElementById('fileUpload').addEventListener('change', async function(
 
         // Clear existing entries
         entries = [];
+        let commaRemovedCount = 0;
 
         // Process each row
         jsonData.forEach(row => {
-            const isbn = row['ISBN'] || '';
+            // Clean the row data by removing commas from string fields
+            const cleanedRow = cleanStringFieldsForCSV(row);
+            
+            // Check if commas were removed
+            const originalStringFields = Object.values(row).filter(val => typeof val === 'string').join('');
+            const cleanedStringFields = Object.values(cleanedRow).filter(val => typeof val === 'string').join('');
+            if (originalStringFields.length > cleanedStringFields.length) {
+                commaRemovedCount++;
+            }
+
+            const isbn = removeCommasFromString(cleanedRow['ISBN'] || '');
             if (!isbn || !isValidISBN(isbn).isValid) {
                 console.warn(`Skipping row with invalid ISBN: ${isbn}`);
                 return;
             }
 
             // Parse numeric values
-            const trimWidth = parseInt(row['Trim Width']) || 0;
-            const pageExtent = parseInt(row['Page Extent']) || 0;
+            const trimWidth = parseInt(cleanedRow['Trim Width']) || 0;
+            const pageExtent = parseInt(cleanedRow['Page Extent']) || 0;
             const divisor = trimWidth <= NARROW_WIDTH_THRESHOLD ? 6 : 4;
             const adjustedPageExtent = Math.ceil(pageExtent / divisor) * divisor;
             
             // Get paper type value from dropdown text
             const paperTypeKey = Object.keys(PAPER_SPECS).find(key => 
-                PAPER_SPECS[key].name === row['Paper Type']
+                PAPER_SPECS[key].name === removeCommasFromString(cleanedRow['Paper Type'])
             );
             
             // Calculate spine size
-            const spineSize = paperTypeKey && row['Binding Style'] ? 
-                calculateSpineSize(adjustedPageExtent, paperTypeKey, row['Binding Style']).toString() : '';
+            const spineSize = paperTypeKey && cleanedRow['Binding Style'] ? 
+                calculateSpineSize(adjustedPageExtent, paperTypeKey, removeCommasFromString(cleanedRow['Binding Style'])).toString() : '';
 
-            let title = row['Title'] || '';
+            let title = removeCommasFromString(cleanedRow['Title'] || '');
             const invalidFields = [];
             let truncatedTitles = 0;
             
@@ -1347,7 +1418,7 @@ document.getElementById('fileUpload').addEventListener('change', async function(
             let platePages = '';
             let platePaperType = '';
             
-            const plateSectionText = row['Plate Section 1'] || '';
+            const plateSectionText = removeCommasFromString(cleanedRow['Plate Section 1'] || '');
             if (plateSectionText) {
                 hasPlateSection = true;
                 
@@ -1358,7 +1429,7 @@ document.getElementById('fileUpload').addEventListener('change', async function(
                 if (matches && matches.length >= 4) {
                     plateInsertPage = matches[1];
                     platePages = matches[2];
-                    platePaperType = matches[3];
+                    platePaperType = removeCommasFromString(matches[3]);
                 } else {
                     invalidFields.push('plateInsertPage', 'platePages', 'platePaperType');
                 }
@@ -1370,7 +1441,7 @@ document.getElementById('fileUpload').addEventListener('change', async function(
             let secondPlatePages = '';
             let secondPlatePaperType = '';
             
-            const secondPlateSectionText = row['Plate Section 2'] || '';
+            const secondPlateSectionText = removeCommasFromString(cleanedRow['Plate Section 2'] || '');
             if (secondPlateSectionText) {
                 hasSecondPlateSection = true;
                 
@@ -1381,22 +1452,22 @@ document.getElementById('fileUpload').addEventListener('change', async function(
                 if (secondMatches && secondMatches.length >= 4) {
                     secondPlateInsertPage = secondMatches[1];
                     secondPlatePages = secondMatches[2];
-                    secondPlatePaperType = secondMatches[3];
+                    secondPlatePaperType = removeCommasFromString(secondMatches[3]);
                 } else {
                     invalidFields.push('secondPlateInsertPage', 'secondPlatePages', 'secondPlatePaperType');
                 }
             }
 
             const entry = {
-                isbn: row['ISBN'] || '',
+                isbn: isbn,
                 title: title,
-                trimHeight: row['Trim Height'] || '',
+                trimHeight: cleanedRow['Trim Height'] || '',
                 trimWidth: trimWidth.toString(),
-                paperType: row['Paper Type'] || '',
-                bindingStyle: row['Binding Style'] || '',
+                paperType: removeCommasFromString(cleanedRow['Paper Type'] || ''),
+                bindingStyle: removeCommasFromString(cleanedRow['Binding Style'] || ''),
                 pageExtent: adjustedPageExtent.toString(),
                 spineSize: spineSize,
-                lamination: row['Lamination'] || '',
+                lamination: removeCommasFromString(cleanedRow['Lamination'] || ''),
                 
                 // First plate section
                 hasPlateSection: hasPlateSection,
@@ -1419,10 +1490,16 @@ document.getElementById('fileUpload').addEventListener('change', async function(
         updateTable();
         enableDownloadButton();
         document.getElementById('deleteAllBtn').disabled = entries.length === 0;
+        
+        // Reset select all checkbox when new file is uploaded
+        document.getElementById('selectAll').checked = false;
+        document.getElementById('downloadXMLBtn').disabled = true;
+        
         this.value = '';
 
         if (entries.length > 0) {
-            showError(`Successfully imported ${entries.length} entries`);
+            const commaMsg = commaRemovedCount > 0 ? ` (commas removed from ${commaRemovedCount} entries)` : '';
+            showError(`Successfully imported ${entries.length} entries${commaMsg}`);
         } else {
             showError('No valid entries found in the Excel file');
         }
