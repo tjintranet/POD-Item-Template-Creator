@@ -59,7 +59,12 @@ const PAPER_SPECS = {
         name: 'Holmen Cream 65 gsm',
         grammage: 65,
         volume: 21.2
-    }
+    },
+    holmen_book_52: {
+    name: 'Holmen Book 52 gsm',
+    grammage: 52,
+    volume: 15.6
+    }    
 };
 
 // Constants for validation
