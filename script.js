@@ -891,15 +891,25 @@ function generateXML(entry) {
 function downloadXML(index) {
     const entry = entries[index];
     const xml = generateXML(entry);
-    const blob = new Blob([xml], { type: 'application/xml' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${entry.isbn.replace(/[^0-9]/g, '')}_book.xml`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    const cleanISBN = entry.isbn.replace(/[^0-9]/g, '');
+    
+    // Create ZIP file containing both XML files
+    const zip = new JSZip();
+    zip.file(`${cleanISBN}_t.xml`, xml);
+    zip.file(`${cleanISBN}_c.xml`, xml);
+    
+    // Generate and download the ZIP
+    zip.generateAsync({ type: 'blob' })
+        .then(blob => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${cleanISBN}_xml_files.zip`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        });
 }
 
 function downloadSelectedXML() {
@@ -911,17 +921,16 @@ function downloadSelectedXML() {
         return;
     }
     
-    if (selectedIndexes.length === 1) {
-        downloadXML(selectedIndexes[0]);
-        return;
-    }
-    
-    // Multiple files - create ZIP
+    // Create ZIP containing all selected entries with both _t and _c versions
     const zip = new JSZip();
     selectedIndexes.forEach(index => {
         const entry = entries[index];
         const xml = generateXML(entry);
-        zip.file(`${entry.isbn.replace(/[^0-9]/g, '')}_book.xml`, xml);
+        const cleanISBN = entry.isbn.replace(/[^0-9]/g, '');
+        
+        // Add both versions to the ZIP
+        zip.file(`${cleanISBN}_t.xml`, xml);
+        zip.file(`${cleanISBN}_c.xml`, xml);
     });
     
     zip.generateAsync({ type: 'blob' })
