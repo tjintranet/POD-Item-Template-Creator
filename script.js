@@ -15,6 +15,16 @@ const PAPER_SPECS = {
         grammage: 70,
         volume: 18
     },
+    munken_80: {
+        name: 'Munken Print Cream 80 gsm',
+        grammage: 80,
+        volume: 17.5
+    },
+    navigator_80: {
+        name: 'Navigator 80 gsm',
+        grammage: 80,
+        volume: 12.5
+    },
     letsgo_90: {
         name: 'LetsGo Silk 90 gsm',
         grammage: 90,
