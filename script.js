@@ -56,22 +56,22 @@ const PAPER_SPECS = {
         volume: 20
     },
     holmen_bulky_52: {
-        name: 'Holmen Bulky 52 gsm',
+        name: 'HolmenBulky 52 gsm',
         grammage: 52,
         volume: 22
     },
     holmen_book_55: {
-        name: 'Holmen Book 55 gsm',
+        name: 'HolmenBook 55 gsm',
         grammage: 55,
         volume: 19.6
     },
     holmen_cream_65: {
-        name: 'Holmen Cream 65 gsm',
+        name: 'HolmenCream 65 gsm',
         grammage: 65,
         volume: 21.2
     },
     holmen_book_52: {
-        name: 'Holmen Book 52 gsm',
+        name: 'HolmenBook 52 gsm',
         grammage: 52,
         volume: 15.6
     }
