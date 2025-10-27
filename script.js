@@ -1,5 +1,6 @@
 // Paper specifications
 const PAPER_SPECS = {
+    // Standard POD Papers
     amber_80: {
         name: 'Amber Preprint 80 gsm',
         grammage: 80,
@@ -36,7 +37,7 @@ const PAPER_SPECS = {
         volume: 11
     },
     holmen_60: {
-        name: 'Holmen Book Cream 60 gsm',
+        name: 'Ulverscroft Book Cream 60 gsm',
         grammage: 60,
         volume: 18
     },
@@ -55,6 +56,7 @@ const PAPER_SPECS = {
         grammage: 70,
         volume: 20
     },
+    // Clays POD Papers
     holmen_bulky_52: {
         name: 'HolmenBulky 52 gsm',
         grammage: 52,
@@ -74,7 +76,28 @@ const PAPER_SPECS = {
         name: 'HolmenBook 52 gsm',
         grammage: 52,
         volume: 15.6
-    }
+    },
+    // CUP POD Papers
+    navigator_80: {
+        name: 'Navigator 80 gsm',
+        grammage: 80,
+        volume: 13
+    },
+    munken_cream_80: {
+        name: 'MunkenCream 80 gsm',
+        grammage: 80,
+        volume: 17.5
+    },
+    clairjet_90: {
+        name: 'Clairjet 90 gsm',
+        grammage: 90,
+        volume: 10
+    },
+    magno_matt_90: {
+        name: 'Magno 90 gsm',
+        grammage: 90,
+        volume: 10
+    },
 };
 
 // Constants for validation
