@@ -83,10 +83,10 @@ const PAPER_SPECS = {
         grammage: 80,
         volume: 13
     },
-    munken_cream_80: {
-        name: 'MunkenCream 80 gsm',
+    munken_pure_80: {
+        name: 'CUP MunkenPure 80 gsm',
         grammage: 80,
-        volume: 17.5
+        volume: 13
     },
     clairjet_90: {
         name: 'Clairjet 90 gsm',
