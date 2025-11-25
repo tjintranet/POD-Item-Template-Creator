@@ -1982,7 +1982,8 @@ function generateCSV() {
         const plateSection2 = entry.hasSecondPlateSection ? 
             `Insert after p${entry.secondPlateInsertPage}-${entry.secondPlatePages}pp-${entry.secondPlatePaperType}` : '';
         
-        return [
+        // Build the row array with all fields
+        const rowFields = [
             'ISBN',
             mode,
             entry.isbn,
@@ -1998,7 +1999,15 @@ function generateCSV() {
             'N',
             plateSection1,
             plateSection2
-        ].map(field => `"${field}"`).join(',');
+        ];
+        
+        // Remove trailing empty/whitespace fields
+        while (rowFields.length > 0 && (!rowFields[rowFields.length - 1] || rowFields[rowFields.length - 1].toString().trim() === '')) {
+            rowFields.pop();
+        }
+        
+        // Map each field to quoted format and join with commas
+        return rowFields.map(field => `"${field}"`).join(',');
     });
     
     const csvContent = rows.join('\n');
